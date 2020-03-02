@@ -13,26 +13,26 @@ def regex_to_fields(event, reg_dict):
 
     return to_return
 
+def parse(path, reg_dict):
+    example_event = get_example(path, 1)
+    field_dict = regex_to_fields(example_event, reg_dict)
+    return field_dict
+    
+def get_example(path, index):
+    event_index = index
+    f = open(path, "r")
+    file_data = f.read()
+    events = file_data.splitlines()
+    return events[index]
 
 file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
-delimiter = " " #splits the event by the given character.
-event_index = 1
-
-f = open(file_path, "r")
-file_data = f.read()
-
-events = file_data.splitlines()
-example_event = events[event_index]
-
 regex_dict = {
     "ip": r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", 
     "timestamp": r"\[.*\]",
-    "status-code": r"\"\s\d*"
+    "status-code": r"(?<=\"\s)(\d*)"
 }
 
-field_dict = regex_to_fields(example_event, regex_dict)
+fields = parse(file_path, regex_dict)
+print(fields)
 
 
-
-print("\nEvent: " + events[event_index] + "\n")
-print(field_dict)
