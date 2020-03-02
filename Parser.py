@@ -3,21 +3,51 @@
 
 import re
 
-file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
-f = open(file_path, "r")
-file_data = f.read()
-print(file_data)
 
 #Seperates the events by line breaks. \r is carriage return. \n is new line
 def seperate_lines(data):
-    lines = re.findall("[\r\n]+)", data)
+    lines = data.splitlines()
     return lines
 
-#Splits events by white space and any major delimiter. Major Delimiters:   space, newline, tab, [], (), {}, !, ;, ,, "", 
-def segment_event(event):
-    segments = re.findall(r"[\w`]+", event) #fields seperated by white space
+
+
+#Splits events by delimiter. Major Delimiters: space, newline, tab, [], (), {}, !, ;, ,, "", 
+def segment_event(event, delim):
+    segments = event.split(delim)
+    return segments
+
+#Runs regex on the given event and returns a dictionary of fields and their values.
+def regex_to_fields(event, reg_dict):
+    to_return = {}
+    for field in reg_dict:
+        print(field)
+        print(reg_dict[field])
+        m = re.search(reg_dict[field], event)
+        if(m):
+            to_return[field] = m.group(0)
+
+    return to_return
 
 
 
+file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
+delimiter = " " #splits the event by the given character.
+event_index = 1
+
+f = open(file_path, "r")
+file_data = f.read()
+
+events = seperate_lines(file_data)
+example_event = events[event_index]
+
+regex_dict = {
+    "ip": r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", 
+    "timestamp": r"\[.*\]"
+}
+
+field_dict = regex_to_fields(example_event, regex_dict)
 
 
+
+print("\nEvent: " + events[event_index] + "\n")
+print(field_dict)
