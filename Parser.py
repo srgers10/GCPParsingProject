@@ -3,18 +3,6 @@
 
 import re
 
-
-#Seperates the events by line breaks. \r is carriage return. \n is new line
-def seperate_lines(data):
-    lines = data.splitlines()
-    return lines
-
-
-#Splits events by delimiter. Major Delimiters: space, newline, tab, [], (), {}, !, ;, ,, "", 
-def segment_event(event, delim):
-    segments = event.split(delim)
-    return segments
-
 #Runs regex on the given event and returns a dictionary of fields and their values.
 def regex_to_fields(event, reg_dict):
     to_return = {}
@@ -26,7 +14,6 @@ def regex_to_fields(event, reg_dict):
     return to_return
 
 
-
 file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
 delimiter = " " #splits the event by the given character.
 event_index = 1
@@ -34,7 +21,7 @@ event_index = 1
 f = open(file_path, "r")
 file_data = f.read()
 
-events = seperate_lines(file_data)
+events = file_data.splitlines()
 example_event = events[event_index]
 
 regex_dict = {
