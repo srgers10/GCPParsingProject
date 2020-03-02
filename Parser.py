@@ -10,7 +10,6 @@ def seperate_lines(data):
     return lines
 
 
-
 #Splits events by delimiter. Major Delimiters: space, newline, tab, [], (), {}, !, ;, ,, "", 
 def segment_event(event, delim):
     segments = event.split(delim)
@@ -20,8 +19,6 @@ def segment_event(event, delim):
 def regex_to_fields(event, reg_dict):
     to_return = {}
     for field in reg_dict:
-        print(field)
-        print(reg_dict[field])
         m = re.search(reg_dict[field], event)
         if(m):
             to_return[field] = m.group(0)
@@ -42,7 +39,8 @@ example_event = events[event_index]
 
 regex_dict = {
     "ip": r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", 
-    "timestamp": r"\[.*\]"
+    "timestamp": r"\[.*\]",
+    "status-code": r"\"\s\d*"
 }
 
 field_dict = regex_to_fields(example_event, regex_dict)
