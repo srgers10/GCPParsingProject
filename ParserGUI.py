@@ -19,6 +19,14 @@ def start_parse():
     fields = parse(file_path,regex_dict)
     print(fields)
 
+    grid_values = tk.LabelFrame(r, text="Field Values")
+    grid_values.pack(fill="both", expand="yes")
+
+    values = [[tk.Entry(grid_reg_ex, text="") for i in range(width)] for j in range(height)]
+    for i in range(height): #Rows
+        for j in range(width): #Columns 
+            values[i][j].grid(row=i, column=j)
+
 
 file_path = ""
 r = tk.Tk() 
@@ -38,7 +46,6 @@ grid_reg_ex.pack(fill="both", expand="yes")
 height = 5
 width = 2
 cell = [[tk.Entry(grid_reg_ex, text="") for i in range(width)] for j in range(height)]
-print(len(cell))
 for i in range(height): #Rows
     for j in range(width): #Columns 
         cell[i][j].grid(row=i, column=j)
