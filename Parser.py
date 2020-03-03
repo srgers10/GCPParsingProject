@@ -2,6 +2,7 @@
 #Developers: Stephen Rogers, Patrick Kelly, Utsav Shrestha
 
 import re
+import json
 
 #Runs regex on the given event and returns a dictionary of fields and their values.
 def regex_to_fields(event, reg_dict):
@@ -13,8 +14,13 @@ def regex_to_fields(event, reg_dict):
 
     return to_return
 
+
 def parse(path, reg_dict, index=1):
     example_event = get_example(path, index)
+
+def parse(path, reg_dict):
+    #Could we add a randomizer here to get a random event? Possibly multiple events? 
+    example_event = get_example(path, 1)
     field_dict = regex_to_fields(example_event, reg_dict)
     return field_dict
  
@@ -50,4 +56,9 @@ if __name__ == "__main__":
     fields = parse(file_path, regex_dict)
     print(fields)
 
-
+    # Creates a json with the dictionary "fields" and saves it as a json. Can be retrieved later using:
+    # with open('fields.json', 'r') as f:
+    #   fields = json.load(f)
+    with open('fields.json', 'w') as f:
+        json.dump(fields, f)
+    
