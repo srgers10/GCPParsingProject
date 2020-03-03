@@ -1,6 +1,7 @@
-from Parser import parse, get_example
+from Parser import parse, get_example, write_json
 import tkinter as tk 
 from tkinter.filedialog import askopenfilename
+import json
 
 def choose_file():
     global file_path
@@ -21,6 +22,8 @@ def start_parse():
     grid_values = tk.LabelFrame(r, text="Field Values")
     grid_values.pack(fill="both", expand="yes")
 
+    write_json(fields)
+    
     extracted_fields = ""
     for k, v in fields.items():
     	extracted_fields += "\n" + str(k) + ": " + str(v)
