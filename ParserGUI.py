@@ -16,16 +16,14 @@ def start_parse():
         if(key != ""):
             regex_dict[key] = value
 
-    print("rr", regex_dict)
     fields = parse(file_path,regex_dict)
-    print(fields)
 
     grid_values = tk.LabelFrame(r, text="Field Values")
     grid_values.pack(fill="both", expand="yes")
 
     extracted_fields = ""
     for k, v in fields.items():
-    	extracted_fields += "\n" + k + ": " + v
+    	extracted_fields += "\n" + str(k) + ": " + str(v)
 
     w= tk.Label(grid_values, text=extracted_fields, justify="left", anchor="w")
     w.pack()
@@ -59,26 +57,20 @@ grid_reg_ex.pack(fill="both", expand="yes")
 
 cell = list()
 height = 0
-width = 2
 f = open("regex_cmds.txt", "r")
-for lines in f:
-	k_v = lines.split(":", 1)
-	print(k_v[0])
-	print(k_v[1])
+for line in f:
+	k_v = line.split(":", 1)
+
 	e1 = tk.Entry(grid_reg_ex)
 	e2 = tk.Entry(grid_reg_ex)
-	e1.insert(0, k_v[0])
-	e2.insert(0, k_v[1])
+	e1.insert(0, k_v[0].strip())
+	e2.insert(0, k_v[1].strip())
+
 	new_cell = [e1, e2]
 	cell.append(new_cell)
 	cell[height][0].grid(row=height, column=0)
 	cell[height][1].grid(row=height, column=1)
 	height += 1
-
-# cell = [[tk.Entry(grid_reg_ex, text="") for i in range(width)] for j in range(height)]
-# for i in range(height): #Rows
-#     for j in range(width): #Columns 
-#         cell[i][j].grid(row=i, column=j)
 
 btn_parse = tk.Button(r, text="Parse", command=start_parse)
 btn_parse.pack()

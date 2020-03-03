@@ -13,11 +13,25 @@ def regex_to_fields(event, reg_dict):
 
     return to_return
 
-def parse(path, reg_dict):
-    example_event = get_example(path, 1)
+def parse(path, reg_dict, index=1):
+    example_event = get_example(path, index)
     field_dict = regex_to_fields(example_event, reg_dict)
     return field_dict
-    
+ 
+def parse(path, reg_dict):
+    f = open(path, "r")
+    field_dict = dict()
+    for line in f:
+        temp_dict = regex_to_fields(line, reg_dict)
+        for k, v in temp_dict.items():
+            if k in field_dict:
+                field_dict[k].append(v)
+            else:
+                temp = list()
+                temp.append(v)
+                field_dict[k] = temp
+    return field_dict
+
 def get_example(path, index):
     event_index = index
     f = open(path, "r")
