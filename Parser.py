@@ -25,14 +25,15 @@ def get_example(path, index):
     events = file_data.splitlines()
     return events[index]
 
-file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
-regex_dict = {
-    "ip": r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", 
-    "timestamp": r"\[.*\]",
-    "status-code": r"(?<=\"\s)(\d*)"
-}
+if __name__ == "__main__": 
+    file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
+    regex_dict = {
+        "ip": r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", 
+        "timestamp": r"\[.*\]",
+        "status-code": r"(?<=\"\s)(\d*)"
+    }
 
-fields = parse(file_path, regex_dict)
-print(fields)
+    fields = parse(file_path, regex_dict)
+    print(fields)
 
 

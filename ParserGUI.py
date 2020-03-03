@@ -16,17 +16,28 @@ def start_parse():
         if(key != ""):
             regex_dict[key] = value
 
+    print("rr", regex_dict)
     fields = parse(file_path,regex_dict)
     print(fields)
 
     grid_values = tk.LabelFrame(r, text="Field Values")
     grid_values.pack(fill="both", expand="yes")
 
-    values = [[tk.Entry(grid_reg_ex, text="") for i in range(width)] for j in range(height)]
-    for i in range(height): #Rows
-        for j in range(width): #Columns 
-            values[i][j].grid(row=i, column=j)
+    extracted_fields = ""
+    for k, v in fields.items():
+    	extracted_fields += k + ": " + v
 
+    w= tk.Label(grid_values, text=extracted_fields)
+    w.pack()
+
+def add_row():
+	global height
+	
+	new_cell = [tk.Entry(grid_reg_ex, text=""), tk.Entry(grid_reg_ex, text="")]
+	cell.append(new_cell)
+	cell[height][0].grid(row=height, column=0)
+	cell[height][1].grid(row=height, column=1)
+	height += 1
 
 file_path = ""
 r = tk.Tk() 
@@ -39,6 +50,9 @@ frame_example.pack(fill="both", expand="yes")
 
 txt_example_event = tk.Text(frame_example)
 txt_example_event.pack()
+
+btn_add_regex_row = tk.Button(r, text="Add", command=add_row)
+btn_add_regex_row.pack()
 
 grid_reg_ex = tk.LabelFrame(r, text="Field Extractions")
 grid_reg_ex.pack(fill="both", expand="yes")
