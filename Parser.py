@@ -15,12 +15,9 @@ def regex_to_fields(event, reg_dict):
     return to_return
 
 
-def parse(path, reg_dict, index=1):
-    example_event = get_example(path, index)
-
-def parse(path, reg_dict):
+def parse_event(path, reg_dict, index):
     #Could we add a randomizer here to get a random event? Possibly multiple events? 
-    example_event = get_example(path, 1)
+    example_event = get_example(path, index)
     field_dict = regex_to_fields(example_event, reg_dict)
     return field_dict
  
@@ -45,9 +42,8 @@ def get_example(path, index):
     events = file_data.splitlines()
     return events[index]
 
-def write_json(data, filename='fields.json'): 
-    with open(filename,'w') as f: 
-        json.dump(data, f)
+def write_json(data, f_json): 
+    json.dump(data, f_json)
 
 if __name__ == "__main__": 
     file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
