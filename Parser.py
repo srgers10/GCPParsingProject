@@ -24,15 +24,20 @@ def parse_event(path, reg_dict, index):
 def parse(path, reg_dict):
     f = open(path, "r")
     field_dict = dict()
+    events = []
+
     for line in f:
         temp_dict = regex_to_fields(line, reg_dict)
-        for k, v in temp_dict.items():
-            if k in field_dict:
-                field_dict[k].append(v)
-            else:
-                temp = list()
-                temp.append(v)
-                field_dict[k] = temp
+        events.append(temp_dict)
+
+        #for k, v in temp_dict.items():
+         #   if k in field_dict:
+          #      field_dict[k].append(v)
+           # else:
+            #    temp = list()
+             #   temp.append(v)
+              #  field_dict[k] = temp
+    field_dict = {'events' : events}
     return field_dict
 
 def get_example(path, index):
