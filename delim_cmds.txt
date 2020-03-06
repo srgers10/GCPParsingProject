@@ -1,0 +1,3 @@
+Delimiter 0 ip <space>
+RegEx 0 timestamp \[.*\] 
+Delimiter 8 status-code <space>

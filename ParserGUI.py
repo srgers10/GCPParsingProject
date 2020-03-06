@@ -1,7 +1,16 @@
-from Parser import parse, parse_event, get_example, write_json
+from Parser import parse, parse_event, get_event, write_json
 import tkinter as tk 
 from tkinter.filedialog import askopenfilename, asksaveasfile
 import json
+
+file_path = "example_log_data.log"
+event_index = 1
+COMMANDS = [
+    "Delimiter",
+    "RegEx"
+]
+selected_commands = []
+
 
 def open_log():
     global file_path
@@ -14,39 +23,44 @@ def save_log():
     f = asksaveasfile(mode='w', defaultextension=".json")
     if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
         return
-    fields = parse(file_path, get_regex())
+    fields = parse(file_path, get_table())
     write_json(fields, f)
 
-def open_regex():
+def open_table():
     regex_path = askopenfilename()
     if regex_path == "":
         return
     with open(regex_path) as f:
-        set_regex(f)
+        set_table(f)
         
 
-def save_regex():
-    regex= get_regex()
+def save_table():
+    table = get_table()
     
     content = ""
-    for k, v in regex.items():
-        content+= k+": "+v + "\n"
+    for field in table:
+        for val in field:
+            content+= str(val)+ " " 
+        content+="\n"
+
     f = asksaveasfile(mode='w', defaultextension=".txt")
     if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
         return
     f.write(content)
     f.close()
 
-def get_regex():
-    regex_dict = dict()
-    for i in range(height): #Rows
-        key = cell[i][0].get()
-        value = cell[i][1].get()
-        if(key != ""):
-            regex_dict[key] = value
-    return regex_dict
+def get_table():
+    table = [[0 for i in range(height-1)] for j in range(4)]
+    for i in range(1, height): #Rows
+        command = selected_commands[i-1].get()
+        index = cell[i][1].get()
+        field_name = cell[i][2].get()
+        expression = cell[i][3].get()
+        row = [command, index, field_name, expression]
+        table[i-1]= row
+    return table
 
-def set_regex(f):
+def set_table(f):
     global cell
     global height
 
@@ -55,20 +69,24 @@ def set_regex(f):
         l.destroy()
 
     cell = list()
-    height = 0
+    
+    new_row = [tk.Label(regex_grid, text="Command"), tk.Label(regex_grid, text="Index"), tk.Label(regex_grid, text="Field Name"),tk.Label(regex_grid, text="Expression")]
+    cell.append(new_row)
+    cell[0][0].grid(row=0, column=0)
+    cell[0][1].grid(row=0, column=1)
+    cell[0][2].grid(row=0, column=2)
+    cell[0][3].grid(row=0, column=3)
+    height = 1
+
+    i = 0
     for line in f:
-        k_v = line.split(":", 1)
+        values = line.split(" ")
 
-        e1 = tk.Entry(regex_grid)
-        e2 = tk.Entry(regex_grid)
-        e1.insert(0, k_v[0].strip())
-        e2.insert(0, k_v[1].strip())
-
-        new_cell = [e1, e2]
-        cell.append(new_cell)
-        cell[height][0].grid(row=height, column=0)
-        cell[height][1].grid(row=height, column=1)
-        height += 1
+        field = add_row()
+        selected_commands[i].set(values[0])
+        field[1].insert(0, values[1])
+        field[2].insert(0, values[2])
+        field[3].insert(0, values[3])
 
 
 
@@ -84,10 +102,11 @@ def prev_event():
     parse_example()
     
 def parse_example():
-    example = get_example(file_path, event_index)
-    txt_example_event.config(text=example)
+    event = get_event(file_path, event_index)
+    txt_example_event.config(text=event)
 
-    example_fields = str(parse_event(file_path, get_regex(), event_index))
+    print(get_table())
+    example_fields = str(parse_event(event, get_table()))
     example_fields = example_fields.replace("{","{\n\t")
     example_fields = example_fields.replace(",",",\n\t")
     example_fields = example_fields.replace("}","\n}")
@@ -95,17 +114,21 @@ def parse_example():
 
 
 def add_row():
-	global height
-	
-	new_cell = [tk.Entry(regex_grid, text=""), tk.Entry(regex_grid, text="")]
-	cell.append(new_cell)
-	cell[height][0].grid(row=height, column=0)
-	cell[height][1].grid(row=height, column=1)
-	height += 1
+    global height
+    new_command = tk.StringVar(r)
+    new_command.set(COMMANDS[0]) # default value
+    selected_commands.append(new_command)
 
+    new_row = [tk.OptionMenu(regex_grid, new_command, *COMMANDS), tk.Entry(regex_grid, text="", width="3"), tk.Entry(regex_grid, text=""),tk.Entry(regex_grid, text="")]
+    cell.append(new_row)
+    cell[height][0].grid(row=height, column=0)
+    cell[height][1].grid(row=height, column=1)
+    new_row[1].insert(0, "0")
+    cell[height][2].grid(row=height, column=2)
+    cell[height][3].grid(row=height, column=3)
+    height += 1
+    return new_row
 
-file_path = "example_log_data.log"
-event_index = 1
 
 r = tk.Tk() 
 r.title('Log Data Parser') 
@@ -114,22 +137,22 @@ frame_left = tk.Frame(r)
 frame_left.grid(column=0, sticky="ns")
 
 regex_grid = tk.LabelFrame(frame_left, text="Field Extractions")
-regex_grid.grid(row=0 , columnspan=3 )
+regex_grid.grid(row=0)
 
-default_regex =  open("regex_cmds.txt")
-set_regex(default_regex)
+default_regex =  open("delim_cmds.txt")
+set_table(default_regex)
 
 btn_add_regex_row = tk.Button(frame_left, text="Add Field", command=add_row)
-btn_add_regex_row.grid(row=1, column=2)
+btn_add_regex_row.grid(row=1)
 
 
 frame_regex_buttons = tk.Frame(frame_left)
 frame_regex_buttons.grid(row=2, sticky="s")
 
-btn_load_regex = tk.Button(frame_regex_buttons, text="Load RegEx", command=open_regex)
+btn_load_regex = tk.Button(frame_regex_buttons, text="Load RegEx", command=open_table)
 btn_load_regex.pack(side=tk.LEFT)
 
-btn_load_regex = tk.Button(frame_regex_buttons, text="Save", command=save_regex)
+btn_load_regex = tk.Button(frame_regex_buttons, text="Save", command=save_table)
 btn_load_regex.pack(side=tk.LEFT)
 
 frame_right = tk.Frame(r)

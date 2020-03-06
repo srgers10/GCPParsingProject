@@ -15,12 +15,56 @@ def regex_to_fields(event, reg_dict):
     return to_return
 
 
-def parse_event(path, reg_dict, index):
+def delimiter_to_fields(event, table, delimiter):
+    to_return = {}
+    fields = event.split(delimiter)
+    for i in range(len(table)):
+        k = list(table.keys())[i]
+        v = fields[int(table[k])]
+        to_return[k]=v
+    return to_return
+
+
+
+def parse_event(path, reg_dict, index, method, delimiter=" "):
     #Could we add a randomizer here to get a random event? Possibly multiple events? 
-    example_event = get_example(path, index)
-    field_dict = regex_to_fields(example_event, reg_dict)
+    event = get_event(path, index)
+    field_dict = dict()
+    if(method=="RegEx"):
+        field_dict = regex_to_fields(event)
+    elif(method=="Delimiter"):
+        field_dict = delimiter_to_fields(event, reg_dict, delimiter)
     return field_dict
- 
+
+#Returns a dictionary of fields and values for the given event
+def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression] 
+    to_return = dict() #key = field_name, value = field_value
+    for field in table:
+        key = field[2]
+        val = ""
+        if field[0] == "RegEx":
+            val = extract_regex_field(event, int(field[1]), field[3])
+        elif field[0] == "Delimiter":
+            val = extract_delim_field(event, int(field[1]), field[3])
+
+        to_return[key] = val
+    return to_return
+
+
+def extract_regex_field(event, index, expression):
+    m = re.search(expression, event)
+    if(m) or m.groups > index:
+        return m.group(index)
+    return None
+
+
+def extract_delim_field(event, index, delimiter):
+    fields = event.split(delimiter)
+    if len(fields) > index:
+        return fields[index]
+
+
+
 def parse(path, reg_dict):
     f = open(path, "r")
     field_dict = dict()
@@ -40,7 +84,9 @@ def parse(path, reg_dict):
     field_dict = {'events' : events}
     return field_dict
 
-def get_example(path, index):
+
+
+def get_event(path, index):
     event_index = index
     f = open(path, "r")
     file_data = f.read()
