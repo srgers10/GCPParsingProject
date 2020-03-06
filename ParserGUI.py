@@ -18,11 +18,10 @@ def save_log():
     write_json(fields, f)
 
 def open_regex():
-    global file_path
-    file_path = askopenfilename()
-    if file_path == "":
+    regex_path = askopenfilename()
+    if regex_path == "":
         return
-    with open(file_path) as f:
+    with open(regex_path) as f:
         set_regex(f)
         
 
