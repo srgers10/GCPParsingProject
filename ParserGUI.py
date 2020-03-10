@@ -51,7 +51,7 @@ def save_table():
 def get_table():
     # table = [[0 for i in range(height-1)] for j in range(4)]
     table = list()
-    table_row = 0
+    # table_row = 0
     for i in range(1, height): #Rows
         command = selected_commands[i-1].get()
         index = cell[i][1].get()
@@ -152,7 +152,6 @@ set_table(default_regex)
 btn_add_regex_row = tk.Button(frame_left, text="Add Field", command=add_row)
 btn_add_regex_row.grid(row=1)
 
-
 frame_regex_buttons = tk.Frame(frame_left)
 frame_regex_buttons.grid(row=2, sticky="s")
 
@@ -177,7 +176,6 @@ frame_example.grid(row=1, column=0)
 txt_example_event = tk.Label(frame_example, wraplength=500, justify=tk.LEFT)
 txt_example_event.grid(row=0)
 
-
 frame_example_buttons = tk.Frame(frame_example)
 frame_example_buttons.grid(row=1, sticky="w")
 
@@ -185,8 +183,6 @@ btn_next_event = tk.Button(frame_example_buttons, text= "Prev Event", command=pr
 btn_next_event.pack(side=tk.LEFT)
 btn_next_event = tk.Button(frame_example_buttons, text= "Next Event", command=next_event)
 btn_next_event.pack(side=tk.LEFT)
-
-
 
 frame_example_fields = tk.LabelFrame(frame_right, text="Field Values")
 frame_example_fields.grid(row=2, column=0, sticky="we")
