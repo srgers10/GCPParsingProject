@@ -1,5 +1,6 @@
 import pandas as pd
 from collections import defaultdict
+import openpyxl
 #-----------------------------------------------------------------------------------------
 # Initialization of the Column
 #-----------------------------------------------------------------------------------------
@@ -23,9 +24,10 @@ column_names = list(column_names)
 #-----------------------------------------------------------------------------------------
 print(column_names)
 events = defaultdict(list)
+
 with open(data_file, 'r') as temp_f:
     lines = temp_f.readlines()
-    
+
     for l in lines:
         temp = l.split(data_file_delim)
         for item in temp:
@@ -37,7 +39,6 @@ with open(data_file, 'r') as temp_f:
                     events[temp_split[0]].append("")
 
 print(events)
-##df = pd.DataFrame.from_dict(events)
-##df.to_excel("McAfeeTestNew.xlsx", index=False)
-
-        
+df = pd.DataFrame.from_dict(events, orient='index')
+df = df.transpose()
+df.to_excel("McAfeeTestNew.xlsx", index=False)
