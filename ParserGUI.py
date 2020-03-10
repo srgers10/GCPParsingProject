@@ -49,17 +49,19 @@ def save_table():
     f.close()
 
 def get_table():
-    table = [[0 for i in range(height-1)] for j in range(4)]
+    # table = [[0 for i in range(height-1)] for j in range(4)]
+    table = list()
     table_row = 0
     for i in range(1, height): #Rows
         command = selected_commands[i-1].get()
         index = cell[i][1].get()
         field_name = cell[i][2].get()
         expression = cell[i][3].get()
-        if field_name != "" and field_name is not None  and expression != "" and expression is not None:
+        if field_name is not None and expression is not None and (field_name != "" and field_name != 0) and (expression != "" and expression != 0):
 	        row = [command, index, field_name, expression]
-	        table[table_row]= row
-	        table_row += 1
+	        # table[table_row]= row
+	        # table_row += 1
+	        table.append(row)
     return table
 
 def set_table(f):
@@ -111,7 +113,6 @@ def parse_example():
     event = get_event(file_path, event_index)
     txt_example_event.config(text=event)
 
-    print(get_table())
     example_fields = str(parse_event(event, get_table()))
     example_fields = example_fields.replace("{","{\n\t")
     example_fields = example_fields.replace(",",",\n\t")

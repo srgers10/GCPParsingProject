@@ -7,6 +7,8 @@ import json
 delimiter_dict = {
     "<space>": " "
 }
+
+
 #Runs regex on the given event and returns a dictionary of fields and their values.
 def regex_to_fields(event, reg_dict):
     to_return = {}
@@ -39,18 +41,20 @@ def parse_event(path, reg_dict, index, method, delimiter=" "):
         field_dict = delimiter_to_fields(event, reg_dict, delimiter)
     return field_dict
 
+
 #Returns a dictionary of fields and values for the given event
 def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression] 
     to_return = dict() #key = field_name, value = field_value
     for field in table:
         key = field[2]
         val = ""
-        if field[0] == "RegEx":
-            val = extract_regex_field(event, int(field[1]), field[3])
-        elif field[0] == "Delimiter":
-            val = extract_delim_field(event, int(field[1]), field[3])
+        if key is not None and key != "":
+            if field[0] == "RegEx":
+                val = extract_regex_field(event, int(field[1]), field[3])
+            elif field[0] == "Delimiter":
+                val = extract_delim_field(event, int(field[1]), field[3])
+            to_return[key] = val
 
-        to_return[key] = val
     return to_return
 
 
@@ -68,25 +72,19 @@ def extract_delim_field(event, index, delimiter):
 
 
 
-def parse(path, reg_dict):
+def parse(path, table):
     f = open(path, "r")
     field_dict = dict()
     events = []
 
-    for line in f:
-        temp_dict = regex_to_fields(line, reg_dict)
-        events.append(temp_dict)
+    for event in f:
+        # temp_dict = regex_to_fields(line, table)
+        if event is not None and event.strip() != "":
+            temp_dict = parse_event(event, table)
+            events.append(temp_dict)
 
-        #for k, v in temp_dict.items():
-         #   if k in field_dict:
-          #      field_dict[k].append(v)
-           # else:
-            #    temp = list()
-             #   temp.append(v)
-              #  field_dict[k] = temp
     field_dict = {'events' : events}
     return field_dict
-
 
 
 def get_event(path, index):
@@ -96,8 +94,10 @@ def get_event(path, index):
     events = file_data.splitlines()
     return events[index]
 
+
 def write_json(data, f_json): 
     json.dump(data, f_json)
+
 
 if __name__ == "__main__": 
     file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
