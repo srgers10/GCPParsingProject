@@ -72,14 +72,14 @@ class ParserGUI:
 		btn_parse.grid(row=1)
 		self.main()
 
-	# read the log file and parse the first line
+	# Reads the log file and parse the first line
 	def open_log(self):
 	    self.file_path = askopenfilename()
 	    if self.file_path == "":
 	        return
 	    self.parse_example()
 
-	# save the extracted fields to json file
+	# Saves the extracted fields to json file
 	def save_log(self):
 	    f = asksaveasfile(mode='w', defaultextension=".json")
 	    if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
@@ -87,13 +87,15 @@ class ParserGUI:
 	    fields = parse(self.file_path, self.get_table())
 	    write_json(fields, f)
 
+	# Loads regex expressions and delimeters from a file
 	def open_table(self):
 	    regex_path = askopenfilename()
 	    if regex_path == "":
 	        return
 	    with open(regex_path) as f:
 	        self.set_table(f)
-	        
+	
+	# Saves the regex expressions and delimeters to a file     
 	def save_table(self):
 	    table = self.get_table()
 	    
@@ -109,7 +111,7 @@ class ParserGUI:
 	    f.write(content)
 	    f.close()
 
-	#Returns a list of list of the regex expressions and delimeters to extract fields
+	# Returns a list of list of the regex expressions and delimeters to extract fields
 	def get_table(self):
 	    # table = [[0 for i in range(self.height-1)] for j in range(4)]
 	    table = list()
@@ -196,6 +198,7 @@ class ParserGUI:
 	    self.height += 1
 	    return new_row
 
+	# The main function
 	def main(self):
 		self.parse_example()
 		self.r.mainloop() 

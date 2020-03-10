@@ -9,7 +9,7 @@ delimiter_dict = {
     "<space>": " "
 }
 
-#Runs regex on the given event and returns a dictionary of fields and their values.
+# Runs regex on the given event and returns a dictionary of fields and their values.
 def regex_to_fields(event, reg_dict):
     to_return = {}
     for field in reg_dict:
@@ -19,7 +19,7 @@ def regex_to_fields(event, reg_dict):
 
     return to_return
 
-#Splits event based on the given delimiter and returns a dictionary of fields and their values.
+# Splits event based on the given delimiter and returns a dictionary of fields and their values.
 def delimiter_to_fields(event, table, delimiter):
     to_return = {}
     fields = event.split(delimiter)
@@ -29,7 +29,7 @@ def delimiter_to_fields(event, table, delimiter):
         to_return[k]=v
     return to_return
 
-#Returns a dictionary of fields and values for the event selected based on index
+# Returns a dictionary of fields and values for the event selected based on index
 def parse_event(path, reg_dict, index, method, delimiter=" "):
     #Could we add a randomizer here to get a random event? Possibly multiple events? 
     event = get_event(path, index)
@@ -40,7 +40,7 @@ def parse_event(path, reg_dict, index, method, delimiter=" "):
         field_dict = delimiter_to_fields(event, reg_dict, delimiter)
     return field_dict
 
-#Returns a dictionary of fields and values for the given event
+# Returns a dictionary of fields and values for the given event
 def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression] 
     to_return = dict() #key = field_name, value = field_value
     for field in table:
@@ -55,7 +55,7 @@ def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group
 
     return to_return
 
-#Returns a dictionary with parent key as "events" and value as a list of dictionaries of fields and values for all the events in the given file
+# Returns a dictionary with parent key as "events" and value as a list of dictionaries of fields and values for all the events in the given file
 def parse(path, table):
     f = open(path, "r")
     field_dict = dict()
@@ -84,7 +84,7 @@ def extract_delim_field(event, index, delimiter):
         return fields[index]
 
 
-# Grabs particular event from the log file based on index
+# Returns particular event from the log file based on index
 def get_event(path, index):
     event_index = index
     f = open(path, "r")
@@ -92,7 +92,7 @@ def get_event(path, index):
     events = file_data.splitlines()
     return events[index]
 
-# saves to json
+# Saves to json
 def write_json(data, f_json): 
     json.dump(data, f_json)
 
