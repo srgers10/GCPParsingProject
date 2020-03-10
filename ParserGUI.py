@@ -11,7 +11,6 @@ COMMANDS = [
 ]
 selected_commands = []
 
-
 def open_log():
     global file_path
     file_path = askopenfilename()
@@ -51,13 +50,16 @@ def save_table():
 
 def get_table():
     table = [[0 for i in range(height-1)] for j in range(4)]
+    table_row = 0
     for i in range(1, height): #Rows
         command = selected_commands[i-1].get()
         index = cell[i][1].get()
         field_name = cell[i][2].get()
         expression = cell[i][3].get()
-        row = [command, index, field_name, expression]
-        table[i-1]= row
+        if field_name != "" and field_name is not None  and expression != "" and expression is not None:
+	        row = [command, index, field_name, expression]
+	        table[table_row]= row
+	        table_row += 1
     return table
 
 def set_table(f):
@@ -81,14 +83,18 @@ def set_table(f):
     i = 0
     for line in f:
         values = line.split(" ")
-
         field = add_row()
         selected_commands[i].set(values[0])
+        # deleting previous garbage values
+        field[1].delete(0, tk.END)
+        field[2].delete(0, tk.END)
+        field[3].delete(0, tk.END)
+
+        # inserting new values
         field[1].insert(0, values[1])
         field[2].insert(0, values[2])
         field[3].insert(0, values[3])
-
-
+        i += 1
 
 def next_event():
     global event_index

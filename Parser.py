@@ -4,6 +4,9 @@
 import re
 import json
 
+delimiter_dict = {
+    "<space>": " "
+}
 #Runs regex on the given event and returns a dictionary of fields and their values.
 def regex_to_fields(event, reg_dict):
     to_return = {}
@@ -53,13 +56,13 @@ def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group
 
 def extract_regex_field(event, index, expression):
     m = re.search(expression, event)
-    if(m) or m.groups > index:
-        return m.group(index)
+    if m:
+        return m.group(0)
     return None
 
 
 def extract_delim_field(event, index, delimiter):
-    fields = event.split(delimiter)
+    fields = event.split(delimiter_dict[delimiter.strip()])
     if len(fields) > index:
         return fields[index]
 
