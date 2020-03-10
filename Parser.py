@@ -9,7 +9,6 @@ delimiter_dict = {
     "<space>": " "
 }
 
-
 #Runs regex on the given event and returns a dictionary of fields and their values.
 def regex_to_fields(event, reg_dict):
     to_return = {}
@@ -19,7 +18,6 @@ def regex_to_fields(event, reg_dict):
             to_return[field] = m.group(0)
 
     return to_return
-
 
 #Splits event based on the given delimiter and returns a dictionary of fields and their values.
 def delimiter_to_fields(event, table, delimiter):
@@ -31,7 +29,6 @@ def delimiter_to_fields(event, table, delimiter):
         to_return[k]=v
     return to_return
 
-
 #Returns a dictionary of fields and values for the event selected based on index
 def parse_event(path, reg_dict, index, method, delimiter=" "):
     #Could we add a randomizer here to get a random event? Possibly multiple events? 
@@ -42,7 +39,6 @@ def parse_event(path, reg_dict, index, method, delimiter=" "):
     elif(method=="Delimiter"):
         field_dict = delimiter_to_fields(event, reg_dict, delimiter)
     return field_dict
-
 
 #Returns a dictionary of fields and values for the given event
 def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression] 
@@ -59,7 +55,6 @@ def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group
 
     return to_return
 
-
 #Returns a dictionary with parent key as "events" and value as a list of dictionaries of fields and values for all the events in the given file
 def parse(path, table):
     f = open(path, "r")
@@ -75,14 +70,12 @@ def parse(path, table):
     field_dict = {'events' : events}
     return field_dict
 
-
 # Extracts value based on the given regex expression
 def extract_regex_field(event, index, expression):
     m = re.search(expression, event)
     if m:
         return m.group(0)
     return None
-
 
 # Extracts value based on the provided delimeter and index
 def extract_delim_field(event, index, delimiter):
@@ -99,11 +92,9 @@ def get_event(path, index):
     events = file_data.splitlines()
     return events[index]
 
-
 # saves to json
 def write_json(data, f_json): 
     json.dump(data, f_json)
-
 
 if __name__ == "__main__": 
     file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
