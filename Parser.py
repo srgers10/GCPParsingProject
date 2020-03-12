@@ -49,14 +49,20 @@ def extract_regex_field(event, index, expression):
     return None
 
 # Extracts value based on the provided delimeter and index
-def extract_delim_field(event, index, delimiter):
-    fields = event.split(delimiter_dict[delimiter.strip()])
+def extract_delim_field(event, index, delimiter, delimited_event_dict):
+    fields = list()
+    if delimiter in delimited_event_dict:
+        fields = delimited_event_dict[delimiter]
+    else:
+        fields = event.split(delimiter_dict[delimiter.strip()])
+        delimited_event_dict[delimiter] = fields
     if len(fields) > index:
-        return fields[index]
+        return fields[index], delimited_event_dict
 
 # Returns a dictionary of fields and values for the given event
 def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression] 
     to_return = dict() #key = field_name, value = field_value
+    delimited_event_dict = dict()
     for field in table:
         key = field[2]
         val = ""
@@ -64,7 +70,7 @@ def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group
             if field[0] == "RegEx":
                 val = extract_regex_field(event, int(field[1]), field[3])
             elif field[0] == "Delimiter":
-                val = extract_delim_field(event, int(field[1]), field[3])
+                val, delimited_event_dict = extract_delim_field(event, int(field[1]), field[3], delimited_event_dict)
             to_return[key] = val
 
     return to_return
