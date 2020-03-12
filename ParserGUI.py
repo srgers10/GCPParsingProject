@@ -1,6 +1,7 @@
 from Parser import parse, parse_event, get_event, write_json
 import tkinter as tk 
 from tkinter.filedialog import askopenfilename, asksaveasfile
+from tkinter import messagebox as mb
 import json
 
 class ParserGUI:
@@ -72,20 +73,31 @@ class ParserGUI:
 		btn_parse.grid(row=1)
 		self.main()
 
+	#checks if any log file has been selected
+	def check_file_path(self):
+		if self.file_path is not None and self.file_path != "":
+			return True
+		else:
+			mb.showerror("No log file", "Please select a log file to parse!")
+			return False
+
 	# Reads the log file and parse the first line
 	def open_log(self):
 	    self.file_path = askopenfilename()
 	    if self.file_path == "":
-	        return
+	    	self.txt_example_event.config(text="")
+	    	self.txt_example_fields.config(text="")
+	    	return
 	    self.parse_example()
 
 	# Saves the extracted fields to json file
 	def save_log(self):
-	    f = asksaveasfile(mode='w', defaultextension=".json")
-	    if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
-	        return
-	    fields = parse(self.file_path, self.get_table())
-	    write_json(fields, f)
+		if self.check_file_path():
+		    f = asksaveasfile(mode='w', defaultextension=".json")
+		    if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+		        return
+		    fields = parse(self.file_path, self.get_table())
+		    write_json(fields, f)
 
 	# Loads regex expressions and delimeters from a file
 	def open_table(self):
@@ -173,14 +185,15 @@ class ParserGUI:
 
 	# Parse the specified event   
 	def parse_example(self):
-	    event = get_event(self.file_path, self.event_index)
-	    self.txt_example_event.config(text=event)
+		if self.check_file_path():
+		    event = get_event(self.file_path, self.event_index)
+		    self.txt_example_event.config(text=event)
 
-	    example_fields = str(parse_event(event, self.get_table()))
-	    example_fields = example_fields.replace("{","{\n\t")
-	    example_fields = example_fields.replace(",",",\n\t")
-	    example_fields = example_fields.replace("}","\n}")
-	    self.txt_example_fields.config(text=example_fields)
+		    example_fields = str(parse_event(event, self.get_table()))
+		    example_fields = example_fields.replace("{","{\n\t")
+		    example_fields = example_fields.replace(",",",\n\t")
+		    example_fields = example_fields.replace("}","\n}")
+		    self.txt_example_fields.config(text=example_fields)
 
 	# Callback action for "Add Field" button to add new row for adding regex or delimeter for parsing
 	def add_row(self):

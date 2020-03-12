@@ -9,36 +9,50 @@ delimiter_dict = {
     "<space>": " "
 }
 
+## These commented functions are never used. May be it can be deleted
 # Runs regex on the given event and returns a dictionary of fields and their values.
-def regex_to_fields(event, reg_dict):
-    to_return = {}
-    for field in reg_dict:
-        m = re.search(reg_dict[field], event)
-        if(m):
-            to_return[field] = m.group(0)
+# def regex_to_fields(event, reg_dict):
+#     to_return = {}
+#     for field in reg_dict:
+#         m = re.search(reg_dict[field], event)
+#         if(m):
+#             to_return[field] = m.group(0)
 
-    return to_return
+#     return to_return
 
-# Splits event based on the given delimiter and returns a dictionary of fields and their values.
-def delimiter_to_fields(event, table, delimiter):
-    to_return = {}
-    fields = event.split(delimiter)
-    for i in range(len(table)):
-        k = list(table.keys())[i]
-        v = fields[int(table[k])]
-        to_return[k]=v
-    return to_return
+# # Splits event based on the given delimiter and returns a dictionary of fields and their values.
+# def delimiter_to_fields(event, table, delimiter):
+#     to_return = {}
+#     fields = event.split(delimiter)
+#     for i in range(len(table)):
+#         k = list(table.keys())[i]
+#         v = fields[int(table[k])]
+#         to_return[k]=v
+#     return to_return
 
 # Returns a dictionary of fields and values for the event selected based on index
-def parse_event(path, reg_dict, index, method, delimiter=" "):
-    #Could we add a randomizer here to get a random event? Possibly multiple events? 
-    event = get_event(path, index)
-    field_dict = dict()
-    if(method=="RegEx"):
-        field_dict = regex_to_fields(event)
-    elif(method=="Delimiter"):
-        field_dict = delimiter_to_fields(event, reg_dict, delimiter)
-    return field_dict
+# def parse_event(path, reg_dict, index, method, delimiter=" "):
+#     #Could we add a randomizer here to get a random event? Possibly multiple events? 
+#     event = get_event(path, index)
+#     field_dict = dict()
+#     if(method=="RegEx"):
+#         field_dict = regex_to_fields(event)
+#     elif(method=="Delimiter"):
+#         field_dict = delimiter_to_fields(event, reg_dict, delimiter)
+#     return field_dict
+
+# Extracts value based on the given regex expression
+def extract_regex_field(event, index, expression):
+    m = re.search(expression, event)
+    if m:
+        return m.group(0)
+    return None
+
+# Extracts value based on the provided delimeter and index
+def extract_delim_field(event, index, delimiter):
+    fields = event.split(delimiter_dict[delimiter.strip()])
+    if len(fields) > index:
+        return fields[index]
 
 # Returns a dictionary of fields and values for the given event
 def parse_event(event, table): #table is [fields], [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression] 
@@ -69,20 +83,6 @@ def parse(path, table):
 
     field_dict = {'events' : events}
     return field_dict
-
-# Extracts value based on the given regex expression
-def extract_regex_field(event, index, expression):
-    m = re.search(expression, event)
-    if m:
-        return m.group(0)
-    return None
-
-# Extracts value based on the provided delimeter and index
-def extract_delim_field(event, index, delimiter):
-    fields = event.split(delimiter_dict[delimiter.strip()])
-    if len(fields) > index:
-        return fields[index]
-
 
 # Returns particular event from the log file based on index
 def get_event(path, index):
