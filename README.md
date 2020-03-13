@@ -9,9 +9,7 @@ Tool for parsing and normalizing log data to ease injestion into Google Cloud Pl
 ## Using the GUI
 The GUI tool is to help in the creation of the command table file. It allows user to view and test their RegEx and extractions in real time and cycle through multiple events to make sure it works in all scenarios. 
 
-[gui]: https://github.com/srgers10/GCPParsingProject/blob/master/Other/pics/Capture.PNG
-[gui]
-
+![GUI](https://github.com/srgers10/GCPParsingProject/blob/master/Other/pics/Capture.PNG)
 1. Run the ParserGUI.py file
 1. Click the **Open Log** button and selected log file you would like to parse.
 
