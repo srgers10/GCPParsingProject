@@ -8,6 +8,7 @@ The GUI tool is to help in the creation of parsers for data by allowing the user
 
 1. Run the ParserGUI.py file
 1. Click the **Open Log** button and selected log file you would like to parse.
+
 1. Field Extraction
    1. Click the **Add Row** for the amount of fields you would like to extract from the data.
       1. Select the **Command**: the method of extraction(RegEx, Delimiter)
@@ -17,5 +18,6 @@ The GUI tool is to help in the creation of parsers for data by allowing the user
          * **Regex**: write the regular expression here.
          * **Delimiter**: write the delimiter here. (ex: if values are seperated by spaces, type \<space\>
    1. If you have already created a command table, you can load it by clicking the **Load** button
+   
 1. You can press the **Update** button to update the example output with the new field expressions
 1. When you are happy with the result, press the **Parse** button and it will run the field extraction over all events in the log file and save it in JSON format to the desired location
