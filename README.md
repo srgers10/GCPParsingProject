@@ -1,10 +1,13 @@
 # GCP Parsing Project
 Tool for parsing and normalizing log data to ease injestion into Google Cloud Platform (Big Query) & Splunk
+
+**The GUI should only be used for the creation of the command table**
+
 ### Developers: Stephen Rogers, Patrick Kelly, Utsav Shrestha
 
 
 ## Using the GUI
-The GUI tool is to help in the creation of parsers for data by allowing the user to view the extraction in real time and cycle through multiple events to make sure it works in all scenarios. 
+The GUI tool is to help in the creation of the command table file. It allows user to view and test their RegEx and extractions in real time and cycle through multiple events to make sure it works in all scenarios. 
 
 1. Run the ParserGUI.py file
 1. Click the **Open Log** button and selected log file you would like to parse.
@@ -21,3 +24,12 @@ The GUI tool is to help in the creation of parsers for data by allowing the user
    
 1. You can press the **Update** button to update the example output with the new field expressions
 1. When you are happy with the result, press the **Parse** button and it will run the field extraction over all events in the log file and save it in JSON format to the desired location
+
+## Using the Parser
+
+via a command line or a script run the following command
+`python Parser.py log_file command_table_file output_file`
+ex:
+`python Parser.py example_log_file.log example_command_table.txt my_fields.json`
+
+When you run the command it will parse the log file by the given commands and store the values in JSON format.
