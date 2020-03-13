@@ -1,4 +1,4 @@
-from Parser import parse, parse_event, get_event, write_json
+from Parser import Parser, get_event, write_json
 import tkinter as tk 
 from tkinter.filedialog import askopenfilename, asksaveasfile
 from tkinter import messagebox as mb
@@ -6,7 +6,10 @@ import json
 
 class ParserGUI:
 	def __init__(self):
-		self.file_path = "example_log_data.log"
+		self.log_path = "Logs/example_log_data.log"
+		self.command_path = "CommandTables/example_command_table.txt"
+		self.parser = Parser(self.log_path, self.command_path, False)
+		default_regex = open("CommandTables/example_command_table.txt")
 		self.event_index = 1
 		self.COMMANDS = [
 		    "Delimiter",
@@ -25,7 +28,7 @@ class ParserGUI:
 		self.regex_grid = tk.LabelFrame(self.frame_left, text="Field Extractions")
 		self.regex_grid.grid(row=0)
 
-		default_regex = open("delim_cmds.txt")
+		
 		self.set_table(default_regex)
 
 		btn_add_regex_row = tk.Button(self.frame_left, text="Add Field", command=self.add_row)
@@ -75,7 +78,7 @@ class ParserGUI:
 
 	#checks if any log file has been selected
 	def check_file_path(self):
-		if self.file_path is not None and self.file_path != "":
+		if self.log_path is not None and self.log_path != "":
 			return True
 		else:
 			mb.showerror("No log file", "Please select a log file to parse!")
@@ -83,8 +86,8 @@ class ParserGUI:
 
 	# Reads the log file and parse the first line
 	def open_log(self):
-	    self.file_path = askopenfilename()
-	    if self.file_path == "":
+	    self.log_path = askopenfilename()
+	    if self.log_path == "":
 	    	self.txt_example_event.config(text="")
 	    	self.txt_example_fields.config(text="")
 	    	return
@@ -96,7 +99,7 @@ class ParserGUI:
 		    f = asksaveasfile(mode='w', defaultextension=".json")
 		    if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
 		        return
-		    fields = parse(self.file_path, self.get_table())
+		    fields = self.parser.parse(self.log_path, self.get_table())
 		    write_json(fields, f)
 
 	# Loads regex expressions and delimeters from a file
@@ -186,10 +189,10 @@ class ParserGUI:
 	# Parse the specified event   
 	def parse_example(self):
 		if self.check_file_path():
-		    event = get_event(self.file_path, self.event_index)
+		    event = get_event(self.log_path, self.event_index)
 		    self.txt_example_event.config(text=event)
 
-		    example_fields = str(parse_event(event, self.get_table()))
+		    example_fields = str(self.parser.parse_event(event, self.get_table()))
 		    example_fields = example_fields.replace("{","{\n\t")
 		    example_fields = example_fields.replace(",",",\n\t")
 		    example_fields = example_fields.replace("}","\n}")
