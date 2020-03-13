@@ -37,7 +37,7 @@ class ParserGUI:
 		frame_regex_buttons = tk.Frame(self.frame_left)
 		frame_regex_buttons.grid(row=2, sticky="s")
 
-		btn_load_regex = tk.Button(frame_regex_buttons, text="Load RegEx", command=self.open_table)
+		btn_load_regex = tk.Button(frame_regex_buttons, text="Load", command=self.open_table)
 		btn_load_regex.pack(side=tk.LEFT)
 
 		btn_save_regex = tk.Button(frame_regex_buttons, text="Save", command=self.save_table)
