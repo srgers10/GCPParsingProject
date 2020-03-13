@@ -24,6 +24,7 @@ The GUI tool is to help in the creation of the command table file. It allows use
    1. If you have already created a command table, you can load it by clicking the **Load** button
    
 1. You can press the **Update** button to update the example output with the new field expressions
+1. Cycle through some of the events to make sure the values line up by pressing the **Next Event** and **Prev Event** button
 1. When you are happy with the result, press the **Parse** button and it will run the field extraction over all events in the log file and save it in JSON format to the desired location
 
 ## Using the Parser
