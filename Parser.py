@@ -3,7 +3,7 @@
 
 import re
 import json
-import sys
+import sys, getopt
 
 # Dictionary for delimiter command
 delimiter_dict = {
@@ -109,6 +109,28 @@ def get_event(path, index):
 def write_json(data, f_json):
     json.dump(data, f_json)
 
+def get_cmd_parameters(argv):
+    log_path = ""
+    command_path = ""
+    output_path = ""
+    try:
+        opts, args = getopt.getopt(argv,"hl:c:o:",["lfile=","cfile=","ofile="])
+    except getopt.GetoptError:
+        print("Parser.py -l <log_file> -c <command_table_file> -o <output_file>")
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print("Parser.py -l <log_file> -c <command_table_file> -o <output_file>")
+            sys.exit()
+        elif opt in ("-l", "--lfile"):
+            log_path = arg
+        elif opt in ("-c", "--cfile"):
+            command_path = arg
+        elif opt in ("-o", "--ofile"):
+            output_path = arg
+
+    return log_path, command_path, output_path
+
 # arg1 = path of the log file
 # arg2 = path of the command table file
 # arg3 = output path (JSON format)
@@ -119,9 +141,10 @@ if __name__ == "__main__":
         command_path = "CommandTables/example_command_table.txt"
         output_path = "JSON/example_output.json"
     else:
-        log_path = sys.argv[1]
-        command_path = sys.argv[2]
-        output_path = sys.argv[3]
+        log_path, command_path, output_path = get_cmd_parameters(sys.argv[1:])
+        # log_path = sys.argv[1]
+        # command_path = sys.argv[2]
+        # output_path = sys.argv[3]
 
     parser = Parser(log_path, command_path, True)
 
