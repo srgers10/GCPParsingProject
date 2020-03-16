@@ -4,6 +4,7 @@
 import re
 import json
 import sys, getopt
+import xml.etree.ElementTree as ET
 
 # Dictionary for delimiter command
 delimiter_dict = {
@@ -11,17 +12,32 @@ delimiter_dict = {
 }
 
 class Parser:
+    events = list()
     fields = dict()
     command_table = list()
+
     log_path = ""
     command_path = ""
+    event_splitter = "[\r\n]+"
 
     def __init__(self, log_path, command_path, parse_at_start = False):
+        
         self.log_path = log_path
         self.command_path = command_path
+        
         self.open_command_table()
+
+        self.events = self.split_events(log_path, self.event_splitter)
+
         if parse_at_start:
             self.parse()
+
+
+    def split_events(self, path, splitter):
+        f = open(path, "r")
+        file_data = f.read()
+        to_return = re.split(splitter, file_data)
+        return to_return
 
     # Command table is the list of commands and field names needed to extract the event's fields.
     def open_command_table(self, command_path = None):
@@ -32,11 +48,17 @@ class Parser:
 
         f = open(command_path, "r")
 
+        temp = True
         for line in f:
-            field = line.split(" ")
-            to_return.append(field)
+            field = line.split()
+            if temp:
+                self.event_splitter = field[1]
+                temp = False
+            else:
+                to_return.append(field)
 
         self.command_table = to_return
+        
         return to_return
 
     # Returns json with field and value pairs, based on the given log file and command table
@@ -46,18 +68,15 @@ class Parser:
         if table is None:
             table = self.command_table
 
-        f = open(self.log_path, "r")
-
         field_dict = dict()
-        events = []
-
-        for event in f:
+        parsed_events = []
+        for event in self.events:
             # temp_dict = regex_to_fields(line, table)
             if event is not None and event.strip() != "":
                 temp_dict = self.parse_event(event, table)
-                events.append(temp_dict)
+                parsed_events.append(temp_dict)
 
-        field_dict = {'events' : events}
+        field_dict = {'events' : parsed_events}
         self.fields = field_dict
         return field_dict
 
@@ -75,6 +94,8 @@ class Parser:
                     val = self.extract_regex_field(event, int(field[1]), field[3])
                 elif field[0] == "Delimiter":
                     val, delimited_event_dict = self.extract_delim_field(event, int(field[1]), field[3], delimited_event_dict)
+                elif field[0] == "XML":
+                    val = self.extract_xml_field(event, int(field[1]), field[3])
                 to_return[key] = val
 
         return to_return
@@ -96,14 +117,18 @@ class Parser:
             delimited_event_dict[delimiter] = fields
         if len(fields) > index:
             return fields[index], delimited_event_dict
-
-# Returns particular event from the log file based on index
-def get_event(path, index):
-    event_index = index
-    f = open(path, "r")
-    file_data = f.read()
-    events = file_data.splitlines()
-    return events[index]
+    
+    def extract_xml_field(self, event, index, x_path):
+        root = ET.fromstring(event)
+        fields = root.findall(x_path)
+        for child in root:
+            print(child.tag, child.attrib)
+        if len(fields) > index:
+            return fields[index]
+        else:
+            print(x_path + " is not in event" + str(root))
+            return None
+    
 
 # Saves to json
 def write_json(data, f_json):
@@ -138,7 +163,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) == 1 : # default: Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
         log_path = "Logs/example_log_data.log"
-        command_path = "CommandTables/example_command_table.txt"
+        command_path = "CommandTables/example_command_table_v2.cmdt"
         output_path = "JSON/example_output.json"
     else:
         log_path, command_path, output_path = get_cmd_parameters(sys.argv[1:])

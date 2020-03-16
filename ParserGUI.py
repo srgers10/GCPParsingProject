@@ -1,4 +1,4 @@
-from Parser import Parser, get_event, write_json
+from Parser import Parser, write_json
 import tkinter as tk 
 from tkinter.filedialog import askopenfilename, asksaveasfile
 from tkinter import messagebox as mb
@@ -13,7 +13,9 @@ class ParserGUI:
 		self.event_index = 1
 		self.COMMANDS = [
 		    "Delimiter",
-		    "RegEx"
+		    "RegEx",
+			"XML",
+			"JSON"
 		]
 		#list to store StringVar objects for OptionMenu Widget of tkinter
 		self.selected_commands = []
@@ -25,17 +27,29 @@ class ParserGUI:
 		self.frame_left = tk.Frame(self.r)
 		self.frame_left.grid(column=0, sticky="ns")
 
+		frame_splitter = tk.Frame(self.frame_left)
+		frame_splitter.grid(row=0)
+
+		lbl_splitter = tk.Label(frame_splitter, text='Event Splitter') 
+		lbl_splitter.grid(row=1, column=0, sticky="w") 
+
+		self.ent_splitter = tk.Entry(frame_splitter, text='Event Splitter') 
+		self.ent_splitter.grid(row=1, column=1, sticky="w")
+
+		
+		self.ent_splitter.insert(0, "[\\r\\n]+") 
+
 		self.regex_grid = tk.LabelFrame(self.frame_left, text="Field Extractions")
-		self.regex_grid.grid(row=0)
+		self.regex_grid.grid(row=1)
 
 		
 		self.set_table(default_regex)
 
 		btn_add_regex_row = tk.Button(self.frame_left, text="Add Field", command=self.add_row)
-		btn_add_regex_row.grid(row=1)
+		btn_add_regex_row.grid(row=2)
 
 		frame_regex_buttons = tk.Frame(self.frame_left)
-		frame_regex_buttons.grid(row=2, sticky="s")
+		frame_regex_buttons.grid(row=3, sticky="s")
 
 		btn_load_regex = tk.Button(frame_regex_buttons, text="Load", command=self.open_table)
 		btn_load_regex.pack(side=tk.LEFT)
@@ -46,11 +60,14 @@ class ParserGUI:
 		frame_right = tk.Frame(self.r)
 		frame_right.grid(row=0, column=1)
 
-		btn_open = tk.Button(frame_right, text='Open Log', command=self.open_log) 
+		frame_event_buttons = tk.Frame(frame_right)
+		frame_event_buttons.grid(row=0, sticky="we")
+
+		btn_open = tk.Button(frame_event_buttons, text='Open Log', command=self.open_log) 
 		btn_open.grid(row=0, column=0, sticky="w") 
 
-		btn_parse = tk.Button(frame_right, text="Parse", command=self.save_log)
-		btn_parse.grid(row=0, column=1)
+		btn_parse = tk.Button(frame_event_buttons, text="Parse", command=self.save_log)
+		btn_parse.grid(row=0, column=3, sticky="e")
 
 		frame_example = tk.LabelFrame(frame_right, text="Example Event Log")
 		frame_example.grid(row=1, column=0)
@@ -69,7 +86,7 @@ class ParserGUI:
 		frame_example_fields = tk.LabelFrame(frame_right, text="Field Values")
 		frame_example_fields.grid(row=2, column=0, sticky="we")
 
-		self.txt_example_fields = tk.Label(frame_example_fields, justify=tk.LEFT)
+		self.txt_example_fields = tk.Label(frame_example_fields,  wraplength=500, justify=tk.LEFT)
 		self.txt_example_fields.grid(row=0, sticky="we")
 
 		btn_parse = tk.Button(frame_example_fields, text="Update", command=self.parse_example)
@@ -189,7 +206,7 @@ class ParserGUI:
 	# Parse the specified event   
 	def parse_example(self):
 		if self.check_file_path():
-		    event = get_event(self.log_path, self.event_index)
+		    event = self.parser.events[self.event_index]
 		    self.txt_example_event.config(text=event)
 
 		    example_fields = str(self.parser.parse_event(event, self.get_table()))
