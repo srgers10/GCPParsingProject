@@ -5,10 +5,15 @@ import re
 import json
 import sys, getopt
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
 
 # Dictionary for delimiter command
 delimiter_dict = {
     "<space>": " "
+}
+
+xml_expr_dict = {
+    "<text>": 1
 }
 
 class Parser:
@@ -20,23 +25,34 @@ class Parser:
     command_path = ""
     
 
-    def __init__(self, log_path, command_path, parse_at_start = False):
+    def __init__(self, log_path, command_path, event_splitter, parse_at_start = False):
         
         self.log_path = log_path
         self.command_path = command_path
         
         self.open_command_table()
-        self.event_splitter = "[\r\n]+"
+        self.event_splitter = event_splitter
         self.events = self.split_events(log_path, self.event_splitter)
-
+        
         if parse_at_start:
             self.parse()
 
+    def format_xml(self):
+        tree = ET.parse(self.log_path)
+        root = tree.getroot()
+        for child in root:
+            print(ET.tostring(child, encoding='unicode'))
 
     def split_events(self, path, splitter):
         f = open(path, "r")
         file_data = f.read()
-        to_return = re.split(splitter, file_data)
+        to_return = list()
+        if splitter == "XML":
+            tree = minidom.parse(self.log_path)
+            itemgroup = tree.getElementsByTagName('Event')
+            to_return = [x.toxml() for x in itemgroup]
+        else:
+            to_return = re.split(splitter, file_data)
         return to_return
 
     # Command table is the list of commands and field names needed to extract the event's fields.
@@ -73,7 +89,7 @@ class Parser:
         for event in self.events:
             # temp_dict = regex_to_fields(line, table)
             if event is not None and event.strip() != "":
-                temp_dict = self.parse_event(event, table)
+                temp_dict = self.parse_event(event, table, None)
                 parsed_events.append(temp_dict)
 
         field_dict = {'events' : parsed_events}
@@ -83,7 +99,7 @@ class Parser:
     # Returns a dictionary of fields and values for the given event
     # key = field_name, value = field_value
     # table = [fields], [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression]
-    def parse_event(self, event, table):
+    def parse_event(self, event, table, event_index):
         to_return = dict()
         delimited_event_dict = dict()
         for field in table:
@@ -95,7 +111,7 @@ class Parser:
                 elif field[0] == "Delimiter":
                     val, delimited_event_dict = self.extract_delim_field(event, int(field[1]), field[3], delimited_event_dict)
                 elif field[0] == "XML":
-                    val = self.extract_xml_field(event, int(field[1]), field[3])
+                    val = self.extract_xml_field(field[1], field[3], event_index)
                 to_return[key] = val
 
         return to_return
@@ -122,16 +138,28 @@ class Parser:
             return fields[index], delimited_event_dict
         return None, delimited_event_dict
     
-    def extract_xml_field(self, event, index, x_path):
-        root = ET.fromstring(event)
-        fields = root.findall(x_path)
-        for child in root:
-            print(child.tag, child.attrib)
-        if len(fields) > index:
-            return fields[index]
-        else:
-            print(x_path + " is not in event" + str(root))
-            return None
+    def extract_xml_field(self, x_path, expression, event_index):
+        tree = ET.parse(self.log_path)
+        root = tree.getroot()
+        xmlns = root[event_index].tag.split('}')[0]
+        if xmlns != root:
+            x_path = xmlns + "}" + str(x_path)
+
+        expression = expression.strip()
+        for child in root[event_index].iter(x_path):
+            if expression in xml_expr_dict:
+                if xml_expr_dict[expression] == 1:
+                    return child.text
+            return child.attrib[expression]
+
+        # fields = root.findall(x_path)
+        # for child in root:
+        #     print(child.tag, child.attrib)
+        # if len(fields) > index:
+        #     return fields[index]
+        # else:
+        #     print(x_path + " is not in event" + str(root))
+        #     return None
     
 
 # Saves to json

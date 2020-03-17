@@ -6,9 +6,10 @@ import json
 
 class ParserGUI:
 	def __init__(self):
+		self.xml = False
 		self.log_path = "Logs/example_log_data.log"
 		self.command_path = "CommandTables/example_command_table.txt"
-		self.parser = Parser(self.log_path, self.command_path, False)
+		
 		default_regex = open("CommandTables/example_command_table.txt")
 		self.event_index = 1
 		self.COMMANDS = [
@@ -36,8 +37,8 @@ class ParserGUI:
 		self.ent_splitter = tk.Entry(frame_splitter, text='Event Splitter') 
 		self.ent_splitter.grid(row=1, column=1, sticky="w")
 
-		
-		self.ent_splitter.insert(0, "[\\r\\n]+") 
+		event_splitter = "[\\r\\n]+"
+		self.ent_splitter.insert(0, event_splitter) 
 
 		self.regex_grid = tk.LabelFrame(self.frame_left, text="Field Extractions")
 		self.regex_grid.grid(row=1)
@@ -91,6 +92,8 @@ class ParserGUI:
 
 		btn_parse = tk.Button(frame_example_fields, text="Update", command=self.parse_example)
 		btn_parse.grid(row=1)
+
+		self.parser = Parser(self.log_path, self.command_path, event_splitter, False)
 		self.main()
 
 	#checks if any log file has been selected
@@ -103,12 +106,26 @@ class ParserGUI:
 
 	# Reads the log file and parse the first line
 	def open_log(self):
-	    self.log_path = askopenfilename()
-	    if self.log_path == "":
-	    	self.txt_example_event.config(text="")
-	    	self.txt_example_fields.config(text="")
-	    	return
-	    self.parse_example()
+		self.ent_splitter.config(state=tk.NORMAL)
+		self.ent_splitter.delete(0, tk.END)
+		self.log_path = askopenfilename()
+		self.xml = False
+		if self.log_path is None or self.log_path.strip() == "":
+			self.txt_example_event.config(text="")
+			self.txt_example_fields.config(text="")
+			return
+		elif self.log_path.split('.')[-1].lower() == "xml":
+			self.ent_splitter.insert(0, "XML")
+			self.ent_splitter.config(state=tk.DISABLED)
+			self.xml = True
+			self.set_grids_tables()
+			self.add_row()
+		else:
+			self.ent_splitter.insert(0, "[\\r\\n]+")
+
+		event_splitter = self.ent_splitter.get()
+		self.parser = Parser(self.log_path, self.command_path, event_splitter, False)
+		self.parse_example()
 
 	# Saves the extracted fields to json file
 	def save_log(self):
@@ -160,26 +177,29 @@ class ParserGUI:
 		        table.append(row)
 	    return table
 
+	def set_grids_tables(self):
+		entries = self.regex_grid.grid_slaves()
+		for l in entries:
+			l.destroy()
+
+		self.cell = list()
+		self.selected_commands = list()
+		self.height = 1
+		new_row = [tk.Label(self.regex_grid, text="Command"), tk.Label(self.regex_grid, text="Node Tag" if self.xml else "Index"), tk.Label(self.regex_grid, text="Field Name"),tk.Label(self.regex_grid, text="Expression")]
+		self.cell.append(new_row)
+		self.cell[0][0].grid(row=0, column=0)
+		self.cell[0][1].grid(row=0, column=1)
+		self.cell[0][2].grid(row=0, column=2)
+		self.cell[0][3].grid(row=0, column=3)
+
 	# Sets the values for regex expressions and delimeters to extract fields
 	def set_table(self, f):
-	    entries = self.regex_grid.grid_slaves()
-	    for l in entries:
-	        l.destroy()
-
-	    self.cell = list()
-	    self.selected_commands = list()
-	    self.height = 1
-	    new_row = [tk.Label(self.regex_grid, text="Command"), tk.Label(self.regex_grid, text="Index"), tk.Label(self.regex_grid, text="Field Name"),tk.Label(self.regex_grid, text="Expression")]
-	    self.cell.append(new_row)
-	    self.cell[0][0].grid(row=0, column=0)
-	    self.cell[0][1].grid(row=0, column=1)
-	    self.cell[0][2].grid(row=0, column=2)
-	    self.cell[0][3].grid(row=0, column=3)
+	    self.set_grids_tables()
 	    
 	    i = 0
 	    for line in f:
 	        values = line.split(" ")
-	        field = self.add_row(values[0])
+	        field = self.add_row(cmd=values[0])
 
 	        # deleting previous garbage values
 	        field[1].delete(0, tk.END)
@@ -209,7 +229,7 @@ class ParserGUI:
 		    event = self.parser.events[self.event_index]
 		    self.txt_example_event.config(text=event)
 
-		    example_fields = str(self.parser.parse_event(event, self.get_table()))
+		    example_fields = str(self.parser.parse_event(event, self.get_table(), self.event_index))
 		    example_fields = example_fields.replace("{","{\n\t")
 		    example_fields = example_fields.replace(",",",\n\t")
 		    example_fields = example_fields.replace("}","\n}")
@@ -217,21 +237,28 @@ class ParserGUI:
 
 	# Callback action for "Add Field" button to add new row for adding regex or delimeter for parsing
 	def add_row(self, cmd=None):
-		if cmd is None:
+		if self.xml:
+			cmd = "XML"
+		elif cmd is None:
 			cmd = self.COMMANDS[0] #default value
 		new_command = tk.StringVar(self.r)
 		new_command.set(cmd)
 		self.selected_commands.append(new_command)
 
-		new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text="", width="3"), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text="")]
+		if self.xml:
+			new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text=""), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text="")]
+			new_row[0].configure(state="disabled")
+		else:	
+			new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text="", width="3"), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text="")]
 		self.cell.append(new_row)
 		self.cell[self.height][0].grid(row=self.height, column=0)
 		self.cell[self.height][1].grid(row=self.height, column=1)
-		new_row[1].insert(0, "0")
+		new_row[1].insert(0, "" if self.xml else "0")
 		self.cell[self.height][2].grid(row=self.height, column=2)
 		self.cell[self.height][3].grid(row=self.height, column=3)
 		self.height += 1
 		return new_row
+
 
 	# The main function
 	def main(self):
