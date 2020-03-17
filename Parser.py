@@ -18,7 +18,7 @@ class Parser:
 
     log_path = ""
     command_path = ""
-    event_splitter = "[\r\n]+"
+    
 
     def __init__(self, log_path, command_path, parse_at_start = False):
         
@@ -26,7 +26,7 @@ class Parser:
         self.command_path = command_path
         
         self.open_command_table()
-
+        self.event_splitter = "[\r\n]+"
         self.events = self.split_events(log_path, self.event_splitter)
 
         if parse_at_start:
@@ -113,10 +113,14 @@ class Parser:
         if delimiter in delimited_event_dict:
             fields = delimited_event_dict[delimiter]
         else:
-            fields = event.split(delimiter_dict[delimiter.strip()])
-            delimited_event_dict[delimiter] = fields
+            try:
+                fields = event.split(delimiter_dict[delimiter.strip()])
+                delimited_event_dict[delimiter] = fields
+            except:
+                print("Invalid Delimiter")
         if len(fields) > index:
             return fields[index], delimited_event_dict
+        return None, delimited_event_dict
     
     def extract_xml_field(self, event, index, x_path):
         root = ET.fromstring(event)

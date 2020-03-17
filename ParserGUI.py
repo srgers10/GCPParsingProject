@@ -167,7 +167,7 @@ class ParserGUI:
 	        l.destroy()
 
 	    self.cell = list()
-
+	    self.selected_commands = list()
 	    self.height = 1
 	    new_row = [tk.Label(self.regex_grid, text="Command"), tk.Label(self.regex_grid, text="Index"), tk.Label(self.regex_grid, text="Field Name"),tk.Label(self.regex_grid, text="Expression")]
 	    self.cell.append(new_row)
@@ -179,8 +179,8 @@ class ParserGUI:
 	    i = 0
 	    for line in f:
 	        values = line.split(" ")
-	        field = self.add_row()
-	        self.selected_commands[i].set(values[0])
+	        field = self.add_row(values[0])
+
 	        # deleting previous garbage values
 	        field[1].delete(0, tk.END)
 	        field[2].delete(0, tk.END)
@@ -216,20 +216,22 @@ class ParserGUI:
 		    self.txt_example_fields.config(text=example_fields)
 
 	# Callback action for "Add Field" button to add new row for adding regex or delimeter for parsing
-	def add_row(self):
-	    new_command = tk.StringVar(self.r)
-	    new_command.set(self.COMMANDS[0]) # default valueS
-	    self.selected_commands.append(new_command)
+	def add_row(self, cmd=None):
+		if cmd is None:
+			cmd = self.COMMANDS[0] #default value
+		new_command = tk.StringVar(self.r)
+		new_command.set(cmd)
+		self.selected_commands.append(new_command)
 
-	    new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text="", width="3"), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text="")]
-	    self.cell.append(new_row)
-	    self.cell[self.height][0].grid(row=self.height, column=0)
-	    self.cell[self.height][1].grid(row=self.height, column=1)
-	    new_row[1].insert(0, "0")
-	    self.cell[self.height][2].grid(row=self.height, column=2)
-	    self.cell[self.height][3].grid(row=self.height, column=3)
-	    self.height += 1
-	    return new_row
+		new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text="", width="3"), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text="")]
+		self.cell.append(new_row)
+		self.cell[self.height][0].grid(row=self.height, column=0)
+		self.cell[self.height][1].grid(row=self.height, column=1)
+		new_row[1].insert(0, "0")
+		self.cell[self.height][2].grid(row=self.height, column=2)
+		self.cell[self.height][3].grid(row=self.height, column=3)
+		self.height += 1
+		return new_row
 
 	# The main function
 	def main(self):
