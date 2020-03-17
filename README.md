@@ -30,8 +30,8 @@ The GUI tool is to help in the creation of the command table file. It allows use
 ## Using the Parser
 
 via a command line or a script run the following command
-`python Parser.py log_file command_table_file output_file`
+`python Parser.py -l <log_file> -c <command_table_file> -o <output_file>`
 ex:
-`python Parser.py example_log_file.log example_command_table.txt my_fields.json`
+`python Parser.py -l Logs\example_log_data.log -c CommandTables\example_command_table.txt -o test_output.json`
 
 When you run the command it will parse the log file by the given commands and store the values in JSON format.
