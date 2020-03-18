@@ -25,8 +25,8 @@ class ParserGUI:
         self.frame_left = tk.Frame(self.r)
         self.frame_left.grid(column=0, sticky="ns")
 
-        self.extraction_grid = tk.LabelFrame(self.frame_left, text="Field Extractions")
-        self.extraction_grid.grid(row=0)
+        self.regex_grid = tk.LabelFrame(self.frame_left, text="Field Extractions")
+        self.regex_grid.grid(row=0)
 
 
         self.set_table(default_regex)
@@ -146,7 +146,7 @@ class ParserGUI:
 
     # Sets the values for regex expressions and delimeters to extract fields
     def set_table(self, f):
-        entries = self.extraction_grid.grid_slaves()
+        entries = self.regex_grid.grid_slaves()
         for l in entries:
             l.destroy()
 
@@ -154,7 +154,7 @@ class ParserGUI:
         self.cell = list()
 
         self.height = 1
-        new_row = [tk.Label(self.extraction_grid, text="Command"), tk.Label(self.extraction_grid, text="Index"), tk.Label(self.extraction_grid, text="Field Name"),tk.Label(self.extraction_grid, text="Expression"), tk.Label(self.extraction_grid, text="")]
+        new_row = [tk.Label(self.regex_grid, text="Command"), tk.Label(self.regex_grid, text="Index"), tk.Label(self.regex_grid, text="Field Name"),tk.Label(self.regex_grid, text="Expression"), tk.Label(self.regex_grid, text="")]
         self.cell.append(new_row)
         self.cell[0][0].grid(row=0, column=0)
         self.cell[0][1].grid(row=0, column=1)
@@ -210,7 +210,7 @@ class ParserGUI:
         self.selected_commands.append(new_command)
         temp = self.height + 0
             # new_row is a list of tk objects, the first being a drop down menu that selects which command to use followed by 3 entry spots
-        new_row = [tk.OptionMenu(self.extraction_grid, new_command, *self.COMMANDS), tk.Entry(self.extraction_grid, text="", width="3"), tk.Entry(self.extraction_grid, text=""),tk.Entry(self.extraction_grid, text=""), tk.Button(self.extraction_grid, text=" X ", command= lambda : self.delete_row(temp))]
+        new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text="", width="3"), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text=""), tk.Button(self.regex_grid, text=" X ", command= lambda : self.delete_row(temp))]
         self.cell.append(new_row) # Height begins at 1 in initialization to skip the headers, so new row starts by using 1 then increments after data is added
         self.cell[self.height][0].grid(row=self.height, column=0)
         self.cell[self.height][1].grid(row=self.height, column=1)
@@ -224,7 +224,7 @@ class ParserGUI:
 
     def delete_row(self, row_index):
         # To Destroy a row we must kill all the tkinter object in that row.
-        itemsToDelete = self.extraction_grid.grid_slaves(row=row_index)
+        itemsToDelete = self.regex_grid.grid_slaves(row=row_index)
         for items in itemsToDelete:
             items.destroy()
 
