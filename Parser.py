@@ -93,10 +93,10 @@ class Parser:
 
         field_dict = dict()
         parsed_events = []
-        for event in self.events:
+        for event_index, event in enumerate(self.events):
             # temp_dict = regex_to_fields(line, table)
             if event is not None and event.strip() != "":
-                temp_dict = self.parse_event(event, table, None)
+                temp_dict = self.parse_event(event, table, event_index)
                 parsed_events.append(temp_dict)
 
         field_dict = {'events' : parsed_events}
