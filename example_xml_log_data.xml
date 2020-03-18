@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Events>
+   <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+      <System>
+         <Provider Name="VSS" />
+         <EventID Qualifiers="0">8224</EventID>
+         <Level>4</Level>
+         <Task>0</Task>
+         <Keywords>0x80000000000000</Keywords>
+         <TimeCreated SystemTime="2020-03-16T18:46:40.816716200Z" />
+         <EventRecordID>10051</EventRecordID>
+         <Channel>Application</Channel>
+         <Computer>LAPTOP-1MNPC2HJ</Computer>
+         <Security />
+      </System>
+      <EventData>
+         <Data />
+         <Binary>2D20436F64653A2020434F525356434330303030303735392D2043616C6C3A2020434F525356434330303030303734312D205049443A202030303033363436302D205449443A202030303033323538342D20434D443A2020433A5C57696E646F77735C73797374656D33325C76737376632E6578652020202D20557365723A204E616D653A204E5420415554484F524954595C53595354454D2C205349443A532D312D352D313820</Binary>
+      </EventData>
+   </Event>
+   <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+      <System>
+         <Provider Name="OVRServiceLauncher" />
+         <EventID Qualifiers="0">0</EventID>
+         <Level>4</Level>
+         <Task>0</Task>
+         <Keywords>0x80000000000000</Keywords>
+         <TimeCreated SystemTime="2020-03-16T18:16:01.715623300Z" />
+         <EventRecordID>10048</EventRecordID>
+         <Channel>Application</Channel>
+         <Computer>LAPTOP-1MNPC2HJ</Computer>
+         <Security />
+      </System>
+      <EventData>
+         <Data>[LauncherService] Session change: WTS_SESSION_UNLOCK</Data>
+      </EventData>
+   </Event>
+   <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+      <System>
+         <Provider Name="gupdate" />
+         <EventID Qualifiers="0">0</EventID>
+         <Level>4</Level>
+         <Task>0</Task>
+         <Keywords>0x80000000000000</Keywords>
+         <TimeCreated SystemTime="2020-03-16T18:15:56.309380200Z" />
+         <EventRecordID>10047</EventRecordID>
+         <Channel>Application</Channel>
+         <Computer>LAPTOP-1MNPC2HJ</Computer>
+         <Security />
+      </System>
+      <EventData>
+         <Data>Service stopped</Data>
+      </EventData>
+   </Event>
+   <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+      <System>
+         <Provider Name="OVRServiceLauncher" />
+         <EventID Qualifiers="0">0</EventID>
+         <Level>4</Level>
+         <Task>0</Task>
+         <Keywords>0x80000000000000</Keywords>
+         <TimeCreated SystemTime="2020-03-16T17:30:26.249829000Z" />
+         <EventRecordID>10046</EventRecordID>
+         <Channel>Application</Channel>
+         <Computer>LAPTOP-1MNPC2HJ</Computer>
+         <Security />
+      </System>
+      <EventData>
+         <Data>[LauncherService] Session change: New active session matches old active session = 1</Data>
+      </EventData>
+   </Event>
+   <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+      <System>
+         <Provider Name="OVRServiceLauncher" />
+         <EventID Qualifiers="0">0</EventID>
+         <Level>4</Level>
+         <Task>0</Task>
+         <Keywords>0x80000000000000</Keywords>
+         <TimeCreated SystemTime="2020-03-16T17:30:26.246836500Z" />
+         <EventRecordID>10045</EventRecordID>
+         <Channel>Application</Channel>
+         <Computer>LAPTOP-1MNPC2HJ</Computer>
+         <Security />
+      </System>
+      <EventData>
+         <Data>[LauncherService] Session change: WTS_SESSION_LOCK</Data>
+      </EventData>
+   </Event>
+   <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+      <System>
+         <Provider Name="OVRServiceLauncher" />
+         <EventID Qualifiers="0">0</EventID>
+         <Level>4</Level>
+         <Task>0</Task>
+         <Keywords>0x80000000000000</Keywords>
+         <TimeCreated SystemTime="2020-03-15T22:08:36.469839000Z" />
+         <EventRecordID>9982</EventRecordID>
+         <Channel>Application</Channel>
+         <Computer>LAPTOP-1MNPC2HJ</Computer>
+         <Security />
+      </System>
+      <EventData>
+         <Data>[LauncherService] Session change: WTS_SESSION_UNLOCK</Data>
+      </EventData>
+   </Event>
+</Events>

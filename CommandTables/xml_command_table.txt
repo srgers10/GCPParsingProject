@@ -1,0 +1,4 @@
+XML Computer comp <text>
+XML Provider provider Name
+XML TimeCreated timestamp SystemTime 0 \d{4}-\d{2}-\d{2}
+XML TimeCreated year SystemTime 0  <hyphen>
