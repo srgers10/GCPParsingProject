@@ -9,7 +9,8 @@ from xml.dom import minidom
 
 # Dictionary for delimiter command
 delimiter_dict = {
-    "<space>": " "
+    "<space>": " ",
+    "<hyphen>": "-"
 }
 
 xml_expr_dict = {
@@ -77,6 +78,12 @@ class Parser:
         
         return to_return
 
+    def try_parse_int(self, s, base=10, val=0):
+      try:
+        return int(s, base)
+      except ValueError:
+        return val
+
     # Returns json with field and value pairs, based on the given log file and command table
     def parse(self, path = None, table= None):
         if path is None:
@@ -109,9 +116,12 @@ class Parser:
                 if field[0] == "RegEx":
                     val = self.extract_regex_field(event, int(field[1]), field[3])
                 elif field[0] == "Delimiter":
-                    val, delimited_event_dict = self.extract_delim_field(event, int(field[1]), field[3], delimited_event_dict)
+                    val, delimited_event_dict = self.extract_delim_field(event, self.try_parse_int(field[1]), field[3], delimited_event_dict)
                 elif field[0] == "XML":
-                    val = self.extract_xml_field(field[1], field[3], event_index)
+                    index = field[4] if len(field) >= 5 else 0
+                    regex = field[5].strip() if len(field) >= 6 else ""
+                    delimiter = field[6].strip() if len(field) >= 7 else ""
+                    val = self.extract_xml_field(field[1], field[3], self.try_parse_int(index), regex, delimiter, event_index)
                 to_return[key] = val
 
         return to_return
@@ -138,7 +148,7 @@ class Parser:
             return fields[index], delimited_event_dict
         return None, delimited_event_dict
     
-    def extract_xml_field(self, x_path, expression, event_index):
+    def extract_xml_field(self, x_path, expression, index, regex, delimiter, event_index):
         tree = ET.parse(self.log_path)
         root = tree.getroot()
         xmlns = root[event_index].tag.split('}')[0]
@@ -147,10 +157,21 @@ class Parser:
 
         expression = expression.strip()
         for child in root[event_index].iter(x_path):
+            value = ""
             if expression in xml_expr_dict:
                 if xml_expr_dict[expression] == 1:
-                    return child.text
-            return child.attrib[expression]
+                    value = child.text
+            else:
+                value = child.attrib[expression]
+
+            if (regex is not None and regex != ""):
+                return self.extract_regex_field(value, index, regex)
+            elif (index is not None and delimiter is not None and index != "" and delimiter != ""):
+                val, delimited_event_dict = self.extract_delim_field(value, index, delimiter, dict())
+                return val
+            else:
+                return value
+
 
         # fields = root.findall(x_path)
         # for child in root:

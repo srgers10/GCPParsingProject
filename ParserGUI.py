@@ -18,6 +18,10 @@ class ParserGUI:
 			"XML",
 			"JSON"
 		]
+		self.COMMANDS_XML = [
+		    "Delimiter",
+		    "RegEx"
+		]
 		#list to store StringVar objects for OptionMenu Widget of tkinter
 		self.selected_commands = []
 		self.cell = list()
@@ -110,6 +114,7 @@ class ParserGUI:
 		self.ent_splitter.delete(0, tk.END)
 		self.log_path = askopenfilename()
 		self.xml = False
+		self.event_index = 1
 		if self.log_path is None or self.log_path.strip() == "":
 			self.txt_example_event.config(text="")
 			self.txt_example_fields.config(text="")
@@ -170,8 +175,16 @@ class ParserGUI:
 	        index = self.cell[i][1].get()
 	        field_name = self.cell[i][2].get()
 	        expression = self.cell[i][3].get()
+	        if self.xml:
+	        	xml_1 = self.cell[i][4].get()
+	        	xml_2 = self.cell[i][5].get()
+	        	xml_3 = self.cell[i][6].get()
+
 	        if field_name is not None and expression is not None and (field_name != "" and field_name != 0) and (expression != "" and expression != 0):
-		        row = [command, index, field_name, expression]
+	        	if self.xml:
+		        	row = [command, index, field_name, expression, xml_1, xml_2, xml_3]
+	        	else:
+		        	row = [command, index, field_name, expression]
 		        # table[table_row]= row
 		        # table_row += 1
 		        table.append(row)
@@ -185,12 +198,19 @@ class ParserGUI:
 		self.cell = list()
 		self.selected_commands = list()
 		self.height = 1
-		new_row = [tk.Label(self.regex_grid, text="Command"), tk.Label(self.regex_grid, text="Node Tag" if self.xml else "Index"), tk.Label(self.regex_grid, text="Field Name"),tk.Label(self.regex_grid, text="Expression")]
+		if self.xml:
+			new_row = [tk.Label(self.regex_grid, text="Command"), tk.Label(self.regex_grid, text="Node Tag"), tk.Label(self.regex_grid, text="Field Name"),tk.Label(self.regex_grid, text="Expression"),tk.Label(self.regex_grid, text="Index"),tk.Label(self.regex_grid, text="RegEx"),tk.Label(self.regex_grid, text="Delimeter")]
+		else:
+			new_row = [tk.Label(self.regex_grid, text="Command"), tk.Label(self.regex_grid, text="Index"), tk.Label(self.regex_grid, text="Field Name"),tk.Label(self.regex_grid, text="Expression")]
 		self.cell.append(new_row)
 		self.cell[0][0].grid(row=0, column=0)
 		self.cell[0][1].grid(row=0, column=1)
 		self.cell[0][2].grid(row=0, column=2)
 		self.cell[0][3].grid(row=0, column=3)
+		if self.xml:
+			self.cell[0][4].grid(row=0, column=4)
+			self.cell[0][5].grid(row=0, column=5)
+			self.cell[0][6].grid(row=0, column=6)
 
 	# Sets the values for regex expressions and delimeters to extract fields
 	def set_table(self, f):
@@ -205,17 +225,25 @@ class ParserGUI:
 	        field[1].delete(0, tk.END)
 	        field[2].delete(0, tk.END)
 	        field[3].delete(0, tk.END)
+	        if self.xml:
+	        	field[4].delete(0, tk.END)
+		        field[5].delete(0, tk.END)
+		        field[6].delete(0, tk.END)
 
 	        # inserting new values
 	        field[1].insert(0, values[1])
 	        field[2].insert(0, values[2])
 	        field[3].insert(0, values[3])
+	        if self.xml:
+	        	for j in range(4,len(values)):
+	        		field[j].insert(0, values[j])
 	        i += 1
 
 	# Callback action for "Next Event" button
 	def next_event(self):
-	    self.event_index +=1
-	    self.parse_example()
+		if self.event_index < len(self.parser.events)-1:
+		    self.event_index +=1
+		    self.parse_example()
 
 	# Callback action for "Prev Event" button
 	def prev_event(self):
@@ -246,7 +274,7 @@ class ParserGUI:
 		self.selected_commands.append(new_command)
 
 		if self.xml:
-			new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text=""), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text="")]
+			new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text=""), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text=""), tk.Entry(self.regex_grid, text="", width="3"),tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text="")]
 			new_row[0].configure(state="disabled")
 		else:	
 			new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text="", width="3"), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text="")]
@@ -256,6 +284,11 @@ class ParserGUI:
 		new_row[1].insert(0, "" if self.xml else "0")
 		self.cell[self.height][2].grid(row=self.height, column=2)
 		self.cell[self.height][3].grid(row=self.height, column=3)
+		if self.xml:
+			self.cell[self.height][4].grid(row=self.height, column=4)
+			self.cell[self.height][5].grid(row=self.height, column=5)
+			self.cell[self.height][6].grid(row=self.height, column=6)
+
 		self.height += 1
 		return new_row
 
