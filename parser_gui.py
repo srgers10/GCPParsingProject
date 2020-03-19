@@ -1,8 +1,8 @@
-from Parser import Parser, write_json
+import json
 import tkinter as tk
 from tkinter.filedialog import askopenfilename, asksaveasfile
 from tkinter import messagebox as mb
-import json
+from parser import Parser, write_json
 
 
 class ParserGUI:
@@ -15,8 +15,8 @@ class ParserGUI:
         self.COMMANDS = [
             "Delimiter",
             "RegEx",
-                "XML",
-                "JSON"
+            "XML",
+            "JSON"
         ]
         self.COMMANDS_XML = [
             "Delimiter",
@@ -25,16 +25,20 @@ class ParserGUI:
         #list to store StringVar objects for OptionMenu Widget of tkinter
         self.selected_commands = []
         self.cell = list()
+        self.button_idx = [None]
         self.height = 1
-        self.r = tk.Tk()
-        self.r.title('Log Data Parser')
+        self.root = tk.Tk()
+        self.root.title('Log Data Parser')
 
-        self.frame_left = tk.Frame(self.r)
+        # Creates a "frame" for the left side of the GUI
+        self.frame_left = tk.Frame(self.root)
         self.frame_left.grid(column=0, sticky="ns")
 
+        # Splits the Frame in two rows
         frame_splitter = tk.Frame(self.frame_left)
         frame_splitter.grid(row=0)
 
+        # Splits up labels on the Frame
         lbl_splitter = tk.Label(frame_splitter, text='Event Splitter')
         lbl_splitter.grid(row=1, column=0, sticky="w")
 
@@ -44,25 +48,26 @@ class ParserGUI:
         event_splitter = "[\\r\\n]+"
         self.ent_splitter.insert(0, event_splitter)
 
-        self.regex_grid = tk.LabelFrame(self.frame_left, text="Field Extractions")
-        self.regex_grid.grid(row=1)
+        self.extraction_grid = tk.LabelFrame(self.frame_left, text="Field Extractions")
+        self.extraction_grid.grid(row=1)
 
 
         self.set_table(default_regex)
 
-        btn_add_regex_row = tk.Button(self.frame_left, text="Add Field", command=self.add_row)
-        btn_add_regex_row.grid(row=2)
+        btn_add_extraction_row = tk.Button(self.frame_left, text="Add Field", command=self.add_row)
+        btn_add_extraction_row.grid(row=2)
 
-        frame_regex_buttons = tk.Frame(self.frame_left)
-        frame_regex_buttons.grid(row=3, sticky="s")
+        frame_extraction_buttons = tk.Frame(self.frame_left)
+        frame_extraction_buttons.grid(row=3, sticky="s")
 
-        btn_load_regex = tk.Button(frame_regex_buttons, text="Load", command=self.open_table)
-        btn_load_regex.pack(side=tk.LEFT)
+        btn_load_extraction = tk.Button(frame_extraction_buttons, text="Load", command=self.open_table)
+        btn_load_extraction.pack(side=tk.LEFT)
 
-        btn_save_regex = tk.Button(frame_regex_buttons, text="Save", command=self.save_table)
-        btn_save_regex.pack(side=tk.LEFT)
+        btn_save_extraction = tk.Button(frame_extraction_buttons, text="Save", command=self.save_table)
+        btn_save_extraction.pack(side=tk.LEFT)
 
-        frame_right = tk.Frame(self.r)
+        # Frame for the "right" side of the GUI
+        frame_right = tk.Frame(self.root)
         frame_right.grid(row=0, column=1)
 
         frame_event_buttons = tk.Frame(frame_right)
@@ -83,8 +88,8 @@ class ParserGUI:
         frame_example_buttons = tk.Frame(frame_example)
         frame_example_buttons.grid(row=1, sticky="w")
 
-        btn_next_event = tk.Button(frame_example_buttons, text= "Prev Event", command=self.prev_event)
-        btn_next_event.pack(side=tk.LEFT)
+        btn_prev_event = tk.Button(frame_example_buttons, text= "Prev Event", command=self.prev_event)
+        btn_prev_event.pack(side=tk.LEFT)
         btn_next_event = tk.Button(frame_example_buttons, text= "Next Event", command=self.next_event)
         btn_next_event.pack(side=tk.LEFT)
 
@@ -100,16 +105,16 @@ class ParserGUI:
         self.parser = Parser(self.log_path, self.command_path, event_splitter, False)
         self.main()
 
-    #checks if any log file has been selected
     def check_file_path(self):
+        """Checks if a log file exists to parse"""
         if self.log_path is not None and self.log_path != "":
             return True
         else:
             mb.showerror("No log file", "Please select a log file to parse!")
             return False
 
-    # Reads the log file and parse the first line
     def open_log(self):
+        """Reads the log file and parses the first line"""
         self.ent_splitter.config(state=tk.NORMAL)
         self.ent_splitter.delete(0, tk.END)
         self.log_path = askopenfilename()
@@ -132,8 +137,8 @@ class ParserGUI:
         self.parser = Parser(self.log_path, self.command_path, event_splitter, False)
         self.parse_example()
 
-    # Saves the extracted fields to json file
     def save_log(self):
+        """Saves the extracted fields to JSON"""
         if self.check_file_path():
             f = asksaveasfile(mode='w', defaultextension=".json")
             if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
@@ -141,16 +146,16 @@ class ParserGUI:
             fields = self.parser.parse(self.log_path, self.get_table())
             write_json(fields, f)
 
-    # Loads regex expressions and delimeters from a file
     def open_table(self):
+        """Loads regular expressions and delimeters from a file"""
         regex_path = askopenfilename()
         if regex_path == "":
             return
         with open(regex_path) as f:
             self.set_table(f)
 
-    # Saves the regex expressions and delimeters to a file
     def save_table(self):
+        """Saves regular expressions and delimeters to a file"""
         table = self.get_table()
 
         content = ""
@@ -165,11 +170,9 @@ class ParserGUI:
         f.write(content)
         f.close()
 
-    # Returns a list of list of the regex expressions and delimeters to extract fields
     def get_table(self):
-        # table = [[0 for i in range(self.height-1)] for j in range(4)]
+        """Returns a list of lists of the Regex and Delimeters to extract the fields"""
         table = list()
-        # table_row = 0
         for i in range(1, self.height): #Rows
             command = self.selected_commands[i-1].get()
             index = self.cell[i][1].get()
@@ -185,13 +188,12 @@ class ParserGUI:
                     row = [command, index, field_name, expression, xml_1, xml_2, xml_3]
                 else:
                     row = [command, index, field_name, expression]
-                # table[table_row]= row
-                # table_row += 1
                 table.append(row)
         return table
 
     def set_grids_tables(self):
-        entries = self.regex_grid.grid_slaves()
+        """Sets the grid table of extraction_grid. This is the grid of Extractions."""
+        entries = self.extraction_grid.grid_slaves()
         for l in entries:
             l.destroy()
 
@@ -199,9 +201,9 @@ class ParserGUI:
         self.selected_commands = list()
         self.height = 1
         if self.xml:
-            new_row = [tk.Label(self.regex_grid, text="Command"), tk.Label(self.regex_grid, text="Node Tag"), tk.Label(self.regex_grid, text="Field Name"),tk.Label(self.regex_grid, text="Expression"),tk.Label(self.regex_grid, text="Index"),tk.Label(self.regex_grid, text="RegEx"),tk.Label(self.regex_grid, text="Delimeter")]
+            new_row = [tk.Label(self.extraction_grid, text="Command"), tk.Label(self.extraction_grid, text="Node Tag"), tk.Label(self.extraction_grid, text="Field Name"),tk.Label(self.extraction_grid, text="Expression"),tk.Label(self.extraction_grid, text="Index"),tk.Label(self.extraction_grid, text="RegEx"),tk.Label(self.extraction_grid, text="Delimeter")]
         else:
-            new_row = [tk.Label(self.regex_grid, text="Command"), tk.Label(self.regex_grid, text="Index"), tk.Label(self.regex_grid, text="Field Name"),tk.Label(self.regex_grid, text="Expression")]
+            new_row = [tk.Label(self.extraction_grid, text="Command"), tk.Label(self.extraction_grid, text="Index"), tk.Label(self.extraction_grid, text="Field Name"),tk.Label(self.extraction_grid, text="Expression")]
         self.cell.append(new_row)
         self.cell[0][0].grid(row=0, column=0)
         self.cell[0][1].grid(row=0, column=1)
@@ -214,6 +216,7 @@ class ParserGUI:
 
     # Sets the values for regex expressions and delimeters to extract fields
     def set_table(self, f):
+        """Sets the value for regex and delimeters to extract fields."""
         self.set_grids_tables()
 
         i = 0
@@ -239,20 +242,20 @@ class ParserGUI:
                     field[j].insert(0, values[j])
             i += 1
 
-    # Callback action for "Next Event" button
     def next_event(self):
+        """Callback action for Next Event button"""
         if self.event_index < len(self.parser.events)-1:
             self.event_index +=1
             self.parse_example()
 
-    # Callback action for "Prev Event" button
     def prev_event(self):
+        """Callback action for Prev Event button"""
         if(self.event_index>1):
             self.event_index -=1
         self.parse_example()
 
-    # Parse the specified event
     def parse_example(self):
+        """Parses the specified event"""
         if self.check_file_path():
             event = self.parser.events[self.event_index]
             self.txt_example_event.config(text=event)
@@ -265,21 +268,22 @@ class ParserGUI:
 
     # Callback action for "Add Field" button to add new row for adding regex or delimeter for parsing
     def add_row(self, cmd=None):
+        """Callback action for the Add Field button. Adds new row for extractions"""
         if self.xml:
             cmd = "XML"
         elif cmd is None:
             cmd = self.COMMANDS[0] #default value
-        new_command = tk.StringVar(self.r)
+        new_command = tk.StringVar(self.root)
         new_command.set(cmd)
         self.selected_commands.append(new_command)
 
         temp = self.height + 0
-
+        self.button_idx.append(temp)
         if self.xml:
-            new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text=""), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text=""), tk.Entry(self.regex_grid, text="", width="3"),tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text=""),tk.Button(self.regex_grid, text=" X ", command= lambda : self.delete_row(temp))]
+            new_row = [tk.OptionMenu(self.extraction_grid, new_command, *self.COMMANDS), tk.Entry(self.extraction_grid, text=""), tk.Entry(self.extraction_grid, text=""),tk.Entry(self.extraction_grid, text=""), tk.Entry(self.extraction_grid, text="", width="3"),tk.Entry(self.extraction_grid, text=""),tk.Entry(self.extraction_grid, text=""),tk.Button(self.extraction_grid, text=" X ", command= lambda : self.delete_row(temp))]
             new_row[0].configure(state="disabled")
         else:
-            new_row = [tk.OptionMenu(self.regex_grid, new_command, *self.COMMANDS), tk.Entry(self.regex_grid, text="", width="3"), tk.Entry(self.regex_grid, text=""),tk.Entry(self.regex_grid, text=""),tk.Button(self.regex_grid, text=" X ", command= lambda : self.delete_row(temp))]
+            new_row = [tk.OptionMenu(self.extraction_grid, new_command, *self.COMMANDS), tk.Entry(self.extraction_grid, text="", width="3"), tk.Entry(self.extraction_grid, text=""),tk.Entry(self.extraction_grid, text=""),tk.Button(self.extraction_grid, text=" X ", command= lambda : self.delete_row(temp))]
         self.cell.append(new_row)
         self.cell[self.height][0].grid(row=self.height, column=0)
         self.cell[self.height][1].grid(row=self.height, column=1)
@@ -296,16 +300,22 @@ class ParserGUI:
         self.height += 1
         return new_row
     def delete_row(self, row_index):
-    # To Destroy a row we must kill all the tkinter object in that row.
-        itemsToDelete = self.regex_grid.grid_slaves(row=row_index)
-        del(self.cell[row_index])
-        self.height -= 1
-        for items in itemsToDelete:
+        """Callback to the 'X' button. Destroys the tkinter objects in a certain row."""
+        new_idx = self.button_idx.index(row_index)
+        items_to_delete = self.extraction_grid.grid_slaves(row=new_idx)
+        del self.cell[new_idx]
+        del self.button_idx[new_idx]
+
+        for items in items_to_delete:
             items.destroy()
+        self.height -= 1
+
+
+
 
     # The main function
     def main(self):
         self.parse_example()
-        self.r.mainloop()
+        self.root.mainloop()
 
 ParserGUI()

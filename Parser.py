@@ -1,50 +1,58 @@
-#iss3 for the Google Cloud Platform Parser. This script will parse log data and normailze it so that it will be both CIM Compliant and available to put into BigQuery
-#Developers: Stephen Rogers, Patrick Kelly, Utsav Shrestha
-
+"""Google Cloud Platform Parser
+This script will parse log data and normailze it
+Data will be both CIM Compliant and available for the DataLake/BigQuery
+Developers: Stephen Rogers, Patrick Kelly, Utsav Shrestha
+"""
 import re
 import json
-import sys, getopt
+import sys
+import getopt
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 # Dictionary for delimiter command
-delimiter_dict = {
+DELIMITER_DICT = {
     "<space>": " ",
     "<hyphen>": "-"
 }
 
-xml_expr_dict = {
+XML_EXPR_DICT = {
     "<text>": 1
 }
 
 class Parser:
+    """Creates a parser object"""
     events = list()
     fields = dict()
     command_table = list()
 
     log_path = ""
     command_path = ""
-    
+
 
     def __init__(self, log_path, command_path, event_splitter, parse_at_start = False):
-        
+        """Initializes a Parser Object"""
+
         self.log_path = log_path
         self.command_path = command_path
-        
+
         self.open_command_table()
         self.event_splitter = event_splitter
         self.events = self.split_events(log_path, self.event_splitter)
-        
+
         if parse_at_start:
             self.parse()
 
     def format_xml(self):
+        """Formats XML currently does not return anything"""
+
         tree = ET.parse(self.log_path)
         root = tree.getroot()
         for child in root:
             print(ET.tostring(child, encoding='unicode'))
 
     def split_events(self, path, splitter):
+        """Splits all events by a specified 'Splitter' """
         f = open(path, "r")
         file_data = f.read()
         to_return = list()
@@ -58,6 +66,7 @@ class Parser:
 
     # Command table is the list of commands and field names needed to extract the event's fields.
     def open_command_table(self, command_path = None):
+        """Command table is the list of commands and field names needed to extract event's fields"""
         to_return = list()
 
         if command_path is None:
@@ -75,17 +84,18 @@ class Parser:
                 to_return.append(field)
 
         self.command_table = to_return
-        
+
         return to_return
 
     def try_parse_int(self, s, base=10, val=0):
-      try:
-        return int(s, base)
-      except ValueError:
-        return val
-
+        """Testing Integer Parsing"""
+        try:
+            return int(s, base)
+        except ValueError:
+            return val
     # Returns json with field and value pairs, based on the given log file and command table
     def parse(self, path = None, table= None):
+        """Returns a JSON with field and value pairs based on given log file and command table"""
         if path is None:
             path = self.log_path
         if table is None:
@@ -107,6 +117,9 @@ class Parser:
     # key = field_name, value = field_value
     # table = [fields], [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression]
     def parse_event(self, event, table, event_index):
+        """Returns a dict of fields and values for a given event
+        key = field_name, value = field_value
+        table = [fields], [index: 0=command, 1=group/split index, 2=field_name, 3=expression]"""
         to_return = dict()
         delimited_event_dict = dict()
         for field in table:
@@ -126,8 +139,8 @@ class Parser:
 
         return to_return
 
-    # Extracts value based on the given regex expression
     def extract_regex_field(self, event, index, expression):
+        """Extracts value based on given regular expression"""
         m = re.search(expression, event)
         if m:
             return m.group(0)
@@ -135,20 +148,22 @@ class Parser:
 
     # Extracts value based on the provided delimeter and index
     def extract_delim_field(self, event, index, delimiter, delimited_event_dict):
+        """Extracts value based on the provided delimeter and index"""
         fields = list()
         if delimiter in delimited_event_dict:
             fields = delimited_event_dict[delimiter]
         else:
             try:
-                fields = event.split(delimiter_dict[delimiter.strip()])
+                fields = event.split(DELIMITER_DICT[delimiter.strip()])
                 delimited_event_dict[delimiter] = fields
             except:
                 print("Invalid Delimiter")
         if len(fields) > index:
             return fields[index], delimited_event_dict
         return None, delimited_event_dict
-    
+
     def extract_xml_field(self, x_path, expression, index, regex, delimiter, event_index):
+        """Extracts value based on XML as well as other options such as regex and delimeter"""
         tree = ET.parse(self.log_path)
         root = tree.getroot()
         xmlns = root[event_index].tag.split('}')[0]
@@ -158,8 +173,8 @@ class Parser:
         expression = expression.strip()
         for child in root[event_index].iter(x_path):
             value = ""
-            if expression in xml_expr_dict:
-                if xml_expr_dict[expression] == 1:
+            if expression in XML_EXPR_DICT:
+                if XML_EXPR_DICT[expression] == 1:
                     value = child.text
             else:
                 value = child.attrib[expression]
@@ -173,21 +188,14 @@ class Parser:
                 return value
 
 
-        # fields = root.findall(x_path)
-        # for child in root:
-        #     print(child.tag, child.attrib)
-        # if len(fields) > index:
-        #     return fields[index]
-        # else:
-        #     print(x_path + " is not in event" + str(root))
-        #     return None
-    
 
 # Saves to json
 def write_json(data, f_json):
+    """Dumps JSON file using python dictionary"""
     json.dump(data, f_json)
 
 def get_cmd_parameters(argv):
+    """Allows for use on Command Line"""
     log_path = ""
     command_path = ""
     output_path = ""
@@ -214,7 +222,7 @@ def get_cmd_parameters(argv):
 # arg3 = output path (JSON format)
 if __name__ == "__main__":
 
-    if len(sys.argv) == 1 : # default: Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
+    if len(sys.argv) == 1 : #Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
         log_path = "Logs/example_log_data.log"
         command_path = "CommandTables/example_command_table_v2.cmdt"
         output_path = "JSON/example_output.json"
@@ -228,21 +236,3 @@ if __name__ == "__main__":
 
     with open(output_path, 'w') as f:
         json.dump(parser.fields, f)
-
-    """
-    file_path = "example_log_data.log" #Change this to the appropriate log file. Example data grabbed from http://www.almhuette-raith.at/apache-log/access.log
-    regex_dict = {
-        "ip": r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}",
-        "timestamp": r"\[.*\]",
-        "status-code": r"(?<=\"\s)(\d*)"
-    }
-
-    fields = parse(file_path, regex_dict)
-    print(fields)
-
-    # Creates a json with the dictionary "fields" and saves it as a json. Can be retrieved later using:
-    # with open('fields.json', 'r') as f:
-    #   fields = json.load(f)
-    with open('fields.json', 'w') as f:
-        json.dump(fields, f)
-    """
