@@ -10,9 +10,9 @@ class ParserGUI:
 	def __init__(self):
 		self.TEMP_TABLE = "temp_table.txt"
 		self.xml = False
-		self.log_path = "Logs/example_log_data.log"
-		self.command_path = "CommandTables/example_command_table.txt"
-		default_regex = open("CommandTables/example_command_table.txt")
+		self.log_path = "../Logs/example_log_data.log"
+		self.command_path = "../CommandTables/example_command_table.txt"
+		default_regex = open("../CommandTables/example_command_table.txt")
 		self.event_index = 1
 		self.COMMANDS = [
 			"Delimiter",
