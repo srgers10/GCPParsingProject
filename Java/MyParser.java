@@ -1,18 +1,19 @@
-import java.nio.file.*;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.lang.*;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.util.regex.*;
+
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 class MyParser{
     Dictionary<String, String>  delimDict;
@@ -42,8 +43,9 @@ class MyParser{
         this.eventSplitter = eventSplitter;
         try{
             events = splitEvents(logPath, eventSplitter);
-        } catch (Exception e){
 
+        } catch (Exception e){
+            e.printStackTrace();
         }
         
     }
@@ -57,12 +59,12 @@ class MyParser{
             System.out.println("File not found" + e);
             return null;
         }
-        String[] toReturn;
-        if(splitter=="XML"){
-            toReturn = splitXMLEvents(fileData);
+        String[] toReturn = fileData.split(splitter);
+        /*if(splitter=="XML"){
+            //toReturn = splitXMLEvents(fileData);
         } else{
             toReturn = fileData.split(splitter);
-        }
+        }*/
 
         return toReturn;
     }
@@ -76,18 +78,21 @@ class MyParser{
             BufferedReader br = new BufferedReader(new FileReader(file)); 
             String line = ""; 
 
-            boolean temp = true;
+            boolean temp = false;
             while ((line = br.readLine()) != null) {
-                String[] field = line.split("");
+                String[] field = line.split(" ");
                 if(temp){
                     eventSplitter = field[1];
                     temp = false;
                 } else{
                     toReturn.add(field);
+                    
                 }
             }
             br.close();
+        
         } catch (Exception e){
+            e.printStackTrace();
             return null;
         }
         return toReturn;
@@ -95,12 +100,32 @@ class MyParser{
     
     //TODO: Extracts value based on given regular expression
     public String extractRegexField(String event, int index, String expression) {
-        return null;
+        String toReturn = "";
+        try{
+            Pattern r = Pattern.compile(expression);
+            Matcher m = r.matcher(event);
+            
+            if(m.find()){
+                toReturn = (m.group(index));
+            }else{
+                System.out.println("No Match:" + expression);
+            }
+            return toReturn;
+        } catch (Exception e){
+            e.printStackTrace();
+            return toReturn;
+        }
+        
+        //return val;
     }
     
     //TODO: Extracts value based on the provided delimeter and index
-    public String extractDelimField(String event, int index, String delimiter) {
-        return null;
+    public String extractDelimField(String event, int index, String delimiter) {  
+        String delim = delimDict.get(delimiter);
+        //System.out.println(event);
+        String[] temp = event.split(delim);
+        //System.out.println(temp.length);
+        return temp[index];
     }
     public String extractXMLField(String xPath, String expression, int index, String regex, String delimiter, int eventIndex) {
         try {
@@ -153,14 +178,88 @@ class MyParser{
         return null;
     }
 
-    //TODO: Split Events in xml file
-    private String[] splitXMLEvents(String fileData){
-        return null;
+    public String parse(){
+        Dictionary<String, String> toReturn = new Hashtable<String, String>();
+        String json = "{ \"events\": [ {";
+        for(int i = 1; i< events.length; i++){
+            String[][] parsedEvent = parseEvent(events[i], i);
+            if(i!=1) json += ", {";
+            for(int j = 0; j< parsedEvent.length; j++){
+                if(j!=0) json += ",";
+                String fieldName = parsedEvent[j][0];
+                String val = parsedEvent[j][1];
+                toReturn.put(fieldName, val);
+                
+                json += "\""+fieldName + "\": \"" + val + "\"";
+            }
+            json += "}";
+        }
+        json +="]\n}";
+        fields = toReturn;
+        return json;
     }
+    public String[][] parseEvent(String event, int eventIndex){
+        String[][] toReturn = new String[commandTable.size()][2]; //0 == field name, 1 == value
+        for(int i = 0; i < commandTable.size(); i++){
+            String[] field = commandTable.get(i);
+            String key = field[2];
+            String val = "";
+            if(key != "" && key != null){
+                String command = field[0];
+                int index = 0;
+                String expression = field[3];
+                //System.out.println(key);
+                switch(command){
+                    case "RegEx":
+                        index = Integer.parseInt(field[1]);
+                        val = extractRegexField(event, index, expression);
+                        break;
+                    case "Delimiter":
+                        index = Integer.parseInt(field[1]);
+                        val = extractDelimField(event, index, expression);
+                        break;
+                    case "XML":
+                        String xPath = field[1];
+                        index = field.length > 4 ? Integer.parseInt(field[4]): 0;
+                        String regex = field.length >5 ? field[5]: "";
+                        String delim = field.length >6 ? field[6]: "";
+                        
+                        val = extractXMLField(xPath, expression, index, regex, delim, eventIndex);
+                        
+                        break;
+                }
+                toReturn[i][0] = key;
+                val = val == null ? "": val;
+                toReturn[i][1] = val;
+                //System.out.println(key +":"+val);
+            }
+        }
+        return toReturn;
+    }
+
   
     public static void main(String args[]){
-        System.out.println("Hello There.");
-        Path currentDir = Paths.get(".", "src\\Logs\\example_xml_log_data.xml");
-        System.out.println(new MyParser(currentDir.toAbsolutePath().toString(), "..\\CommandTables\\xml_command_table.txt", " ").extractXMLField("Computer", "<text>", 0, "", "", 0));
+        System.out.println("Parsing...");
+        String logPath = "../Logs/example_log_data.log";
+        String commPath = "../CommandTables/example_command_table.txt";
+        String outputPath = "../JSON/java_example_output.json";
+        String split = "[\r\n]+";
+        MyParser parser = new MyParser(logPath, commPath, split);
+        String json = parser.parse();
+
+        Writer writer = null;
+
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(outputPath), "utf-8"));
+            writer.write(json);
+        } catch (IOException ex) {
+            // Report
+        } finally {
+        try {writer.close();} catch (Exception ex) {/*ignore*/}
+        }
+       
+        System.out.println(json);
+        System.out.println("\nDone! Saved to "+ outputPath);
     }
 }
