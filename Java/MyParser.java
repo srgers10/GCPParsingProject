@@ -16,9 +16,8 @@ import java.util.TreeSet;
 
 class CliParser{
     private String[] args = null;
-
     private HashMap<String, Integer> switchIndexes = new HashMap<String, Integer>();
-    private TreeSet<Integer>         takenIndexes  = new TreeSet<Integer>();
+    private TreeSet<Integer> takenIndexes  = new TreeSet<Integer>();
     
     public CliParser(String[] args) {
         parse(args);
@@ -30,21 +29,26 @@ class CliParser{
         switchIndexes.clear();
         takenIndexes.clear();
         for(int i=0; i < args.length; i++) {
-          if(args[i].startsWith("-") ){
-            switchIndexes.put(args[i], i);
-            takenIndexes.add(i);
-          }
+            if(args[i].startsWith("-") ){
+                switchIndexes.put(args[i], i);
+                takenIndexes.add(i);
+            }
         }
-     }
+    }
     
     public String switchValue(String switchName) {
-        int switchIndex = switchIndexes.get(switchName);
-        if(switchIndex + 1 < args.length){
-          takenIndexes.add(switchIndex +1);
-          return args[switchIndex +1];
+        try{
+            int switchIndex = switchIndexes.get(switchName);
+            if(switchIndex + 1 < args.length){
+                takenIndexes.add(switchIndex +1);
+                return args[switchIndex +1];
+            }
+        }
+        catch(Exception ex){
+            return "";
         }
         return "";
-      }
+    }
 }
 
 public class MyParser{
@@ -54,6 +58,7 @@ public class MyParser{
     String[] events;
     Dictionary<String, String> fields;
     ArrayList<String[]> commandTable;
+    NodeList xml_nodes = null;
 
     String logPath;
     String commandPath;
@@ -89,12 +94,10 @@ public class MyParser{
             System.out.println("File not found" + e);
             return null;
         }
-        String[] toReturn = fileData.split(splitter);
-        /*if(splitter=="XML"){
-            //toReturn = splitXMLEvents(fileData);
-        } else{
+        String[] toReturn = null;
+        if(splitter != "XML"){
             toReturn = fileData.split(splitter);
-        }*/
+        }
 
         return toReturn;
     }
@@ -145,7 +148,6 @@ public class MyParser{
             e.printStackTrace();
             return toReturn;
         }
-        
         //return val;
     }
     
@@ -158,10 +160,10 @@ public class MyParser{
         return temp[index];
     }
 
-    //Extracts value based on XML attributes or text along with other options such as regex and delimeter
-    public String extractXMLField(String xPath, String expression, int index, String regex, String delimiter, int eventIndex) {
-        try {
-            File inputFile = new File(logPath);
+    public NodeList splitXML(){
+        try
+        {
+            File inputFile = new File(this.logPath);
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(inputFile);
@@ -180,7 +182,20 @@ public class MyParser{
             }
             
             NodeList childrens = root.getElementsByTagName(tagName);
-            Element desiredChild = (Element) childrens.item(eventIndex);
+            return childrens;
+        } catch (Exception e) {
+           e.printStackTrace();
+        }
+        return null;
+    }
+
+    //Extracts value based on XML attributes or text along with other options such as regex and delimeter
+    public String extractXMLField(String xPath, String expression, int index, String regex, String delimiter, int eventIndex) {
+        try {
+            if(this.xml_nodes == null){
+                this.xml_nodes = splitXML();
+            }
+            Element desiredChild = (Element) this.xml_nodes.item(eventIndex);
             NodeList xPathNode = desiredChild.getElementsByTagName(xPath);
             for (int i=0; i<xPathNode.getLength();i++) {
                 String value = "";
@@ -220,8 +235,20 @@ public class MyParser{
     public String parse(){
         Dictionary<String, String> toReturn = new Hashtable<String, String>();
         String json = "{ \"events\": [ {";
-        for(int i = 1; i< events.length; i++){
-            String[][] parsedEvent = parseEvent(events[i], i);
+        int noOfEvents = 0;
+        boolean xml = this.eventSplitter.equals("XML");
+
+        if (xml){
+            if (this.xml_nodes == null){
+                this.xml_nodes = splitXML();
+            }
+            noOfEvents = this.xml_nodes.getLength();
+        }
+        else{
+            noOfEvents = events.length;
+        }
+        for(int i = 1; i < noOfEvents; i++){
+            String[][] parsedEvent = parseEvent(xml ? "" : events[i], i);
             if(i!=1) json += ", {";
             for(int j = 0; j< parsedEvent.length; j++){
                 if(j!=0) json += ",";
@@ -282,17 +309,26 @@ public class MyParser{
 
   
     public static void main(String args[]){
-        System.out.println("Parsing...");
         // String logPath = "../Logs/example_log_data.log";
         // String commPath = "../CommandTables/example_command_table.txt";
         // String outputPath = "../JSON/java_example_output.json";
-        
+        // String split = "[\r\n]+";
+        String helpText = "java MyParser -lp <log_path> -cp <command_path> -op <output_path> -s <splitter>";
+
         CliParser cp = new CliParser(args);
+
         String logPath = cp.switchValue("-lp");
         String commPath = cp.switchValue("-cp");
         String outputPath = cp.switchValue("-op");
-        String split = "[\r\n]+";
-        
+        String split = cp.switchValue("-s");
+
+        if (logPath.equals("") || commPath.equals("") || outputPath.equals("") || split.equals("")){
+            System.out.println("Please use correct syntax:");
+            System.out.println(helpText);
+            return;
+        }
+
+        System.out.println("Parsing...");
         MyParser parser = new MyParser(logPath, commPath, split);
         String json = parser.parse();
 
