@@ -6,10 +6,8 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.regex.*;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -43,11 +41,9 @@ class MyParser{
         this.eventSplitter = eventSplitter;
         try{
             events = splitEvents(logPath, eventSplitter);
-
         } catch (Exception e){
             e.printStackTrace();
         }
-        
     }
 
     //Splits all events by a specified 'Splitter'
@@ -98,7 +94,7 @@ class MyParser{
         return toReturn;
     }
     
-    //TODO: Extracts value based on given regular expression
+    //Extracts value based on given regular expression
     public String extractRegexField(String event, int index, String expression) {
         String toReturn = "";
         try{
@@ -119,7 +115,7 @@ class MyParser{
         //return val;
     }
     
-    //TODO: Extracts value based on the provided delimeter and index
+    //Extracts value based on the provided delimeter and index
     public String extractDelimField(String event, int index, String delimiter) {  
         String delim = delimDict.get(delimiter);
         //System.out.println(event);
@@ -127,6 +123,8 @@ class MyParser{
         //System.out.println(temp.length);
         return temp[index];
     }
+
+    //Extracts value based on XML attributes or text along with other options such as regex and delimeter
     public String extractXMLField(String xPath, String expression, int index, String regex, String delimiter, int eventIndex) {
         try {
             File inputFile = new File(logPath);
@@ -137,6 +135,9 @@ class MyParser{
             Element root = doc.getDocumentElement();
             NodeList all_child = root.getChildNodes();
             String tagName = "";
+
+            // get the name of firstchildnode
+            // This is required becuase java considers white-space as a [#text node but we are looking for element node
             for (int i=0; i<all_child.getLength();i++) {
                 Node curNode = all_child.item(i);
                 if (curNode.getNodeType() == Node.ELEMENT_NODE) { 
@@ -152,15 +153,18 @@ class MyParser{
                 Node curNode = xPathNode.item(i);
                 if (curNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element curElement = (Element) curNode;
+                    // extract value from text of the node
                     if(xmlExprDict.containsKey(expression)) {
                         if(xmlExprDict.get(expression)==1) {
                             value = curElement.getTextContent();
                         }
                     }
+                    // extract value from attribute of the node
                     else {
                         value = curElement.getAttribute(expression);
                     }
                     
+                    // additionally extract the required value by using regex or delimiter to the xml extracted above value
                     if (regex != null && regex != "") {
                         return extractRegexField(value, index, regex);
                     }
@@ -178,6 +182,7 @@ class MyParser{
         return null;
     }
 
+    //Returns json with field and value pairs, based on the given log file and command table
     public String parse(){
         Dictionary<String, String> toReturn = new Hashtable<String, String>();
         String json = "{ \"events\": [ {";
@@ -198,6 +203,12 @@ class MyParser{
         fields = toReturn;
         return json;
     }
+
+    /* Returns a dictionary of fields and values for the given event
+       key = field_name, value = field_value
+       table = [fields], 
+       For Regex and Delimiter: [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression] 
+       For XML: [index: 0 = command, 1= Node Name, 2 = field_name, 3 = Attribute Name/<expression>], 4 = group/split index, 5 = Regex Expression, 6 = Delimiter */
     public String[][] parseEvent(String event, int eventIndex){
         String[][] toReturn = new String[commandTable.size()][2]; //0 == field name, 1 == value
         for(int i = 0; i < commandTable.size(); i++){
@@ -208,7 +219,6 @@ class MyParser{
                 String command = field[0];
                 int index = 0;
                 String expression = field[3];
-                //System.out.println(key);
                 switch(command){
                     case "RegEx":
                         index = Integer.parseInt(field[1]);
@@ -231,7 +241,6 @@ class MyParser{
                 toReturn[i][0] = key;
                 val = val == null ? "": val;
                 toReturn[i][1] = val;
-                //System.out.println(key +":"+val);
             }
         }
         return toReturn;
