@@ -12,8 +12,42 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import java.util.TreeSet;
 
-class MyParser{
+class CliParser{
+    private String[] args = null;
+
+    private HashMap<String, Integer> switchIndexes = new HashMap<String, Integer>();
+    private TreeSet<Integer>         takenIndexes  = new TreeSet<Integer>();
+    
+    public CliParser(String[] args) {
+        parse(args);
+    }
+    
+    public void parse(String[] arguments){
+        this.args = arguments;
+        //locate switches.
+        switchIndexes.clear();
+        takenIndexes.clear();
+        for(int i=0; i < args.length; i++) {
+          if(args[i].startsWith("-") ){
+            switchIndexes.put(args[i], i);
+            takenIndexes.add(i);
+          }
+        }
+     }
+    
+    public String switchValue(String switchName) {
+        int switchIndex = switchIndexes.get(switchName);
+        if(switchIndex + 1 < args.length){
+          takenIndexes.add(switchIndex +1);
+          return args[switchIndex +1];
+        }
+        return "";
+      }
+}
+
+public class MyParser{
     Dictionary<String, String>  delimDict;
     HashMap<String, Integer> xmlExprDict;
     
@@ -249,10 +283,16 @@ class MyParser{
   
     public static void main(String args[]){
         System.out.println("Parsing...");
-        String logPath = "../Logs/example_log_data.log";
-        String commPath = "../CommandTables/example_command_table.txt";
-        String outputPath = "../JSON/java_example_output.json";
+        // String logPath = "../Logs/example_log_data.log";
+        // String commPath = "../CommandTables/example_command_table.txt";
+        // String outputPath = "../JSON/java_example_output.json";
+        
+        CliParser cp = new CliParser(args);
+        String logPath = cp.switchValue("-lp");
+        String commPath = cp.switchValue("-cp");
+        String outputPath = cp.switchValue("-op");
         String split = "[\r\n]+";
+        
         MyParser parser = new MyParser(logPath, commPath, split);
         String json = parser.parse();
 
