@@ -55,6 +55,7 @@ public class MyParser{
     Dictionary<String, String>  delimDict;
     HashMap<String, Integer> xmlExprDict;
     HashMap<String, Pattern> regexPatterns = new HashMap<String, Pattern>();
+    HashMap<String, String[]> delimitedEvents = new HashMap<String, String[]>();
 
     String[] events;
     Dictionary<String, String> fields;
@@ -136,23 +137,22 @@ public class MyParser{
     public String extractRegexField(String event, int index, String expression) {
         String toReturn = "";
         try{
-          Pattern r;
-          if(regexPatterns.containsKey(expression)){
-            r = regexPatterns.get(expression);
-          }else{
-            r = Pattern.compile(expression);
-            regexPatterns.put(expression, r);
-          }
-
-          Matcher m = r.matcher(event);
-
-            if(m.find()){
-                toReturn = (m.group(index));
+            Pattern r;
+            if(regexPatterns.containsKey(expression)){
+                r = regexPatterns.get(expression);
             }else{
-                System.out.println("No Match:" + expression);
+                r = Pattern.compile(expression);
+                regexPatterns.put(expression, r);
             }
+
+            Matcher m = r.matcher(event);
+
+            while (m.find()){
+                toReturn += " " + m.group(1);
+            }
+
             return toReturn;
-        } catch (Exception e){
+        }catch (Exception e){
             e.printStackTrace();
             return toReturn;
         }
@@ -161,11 +161,23 @@ public class MyParser{
 
     //Extracts value based on the provided delimeter and index
     public String extractDelimField(String event, int index, String delimiter) {
-        String delim = delimDict.get(delimiter);
-        //System.out.println(event);
-        String[] temp = event.split(delim);
-        //System.out.println(temp.length);
-        return temp[index];
+        String[] fields = null;
+        if(delimitedEvents.containsKey(delimiter)){
+            fields = delimitedEvents.get(delimiter.trim());
+        }
+        else{
+            String delim = delimDict.get(delimiter.trim());
+            if (delim != null)
+                fields = event.split(delim);
+            else{
+                System.out.println("Invalid Delimiter");
+                return "";
+            }
+        }
+        if (fields != null && fields.length > index)
+            return fields[index];
+
+        return "";
     }
 
     public NodeList splitXML(){
@@ -211,7 +223,7 @@ public class MyParser{
                 if (curNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element curElement = (Element) curNode;
                     // extract value from text of the node
-                    if(xmlExprDict.containsKey(expression)) {
+                    if(xmlExprDict.containsKey(expression.trim())) {
                         if(xmlExprDict.get(expression)==1) {
                             value = curElement.getTextContent();
                         }
@@ -280,6 +292,7 @@ public class MyParser{
        For XML: [index: 0 = command, 1= Node Name, 2 = field_name, 3 = Attribute Name/<expression>], 4 = group/split index, 5 = Regex Expression, 6 = Delimiter */
     public String[][] parseEvent(String event, int eventIndex){
         String[][] toReturn = new String[commandTable.size()][2]; //0 == field name, 1 == value
+        this.delimitedEvents = new HashMap<String, String[]>();
         for(int i = 0; i < commandTable.size(); i++){
             String[] field = commandTable.get(i);
             String key = field[2];
