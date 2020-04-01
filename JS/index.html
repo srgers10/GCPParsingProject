@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Log Parser</title>
+    <script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+    <script type="text/javascript" src="parser.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+  </head>
+  <body>
+    <div class="">
+      <div>Open Log:<input id="logFile" type="file" name=""></input><button type="button" name="button">Parse</button></div>
+
+
+      Event Splitter: <input id = "eventSplitter" type="text" name="" value="[\r\n]+">
+    </div>
+
+    <div id="fieldExtractions_holder">
+      <h3>Field Extractions</h3>
+      <hr>
+      <table id ="fieldTable">
+        <tr>
+          <th>Command</th>
+          <th>Index</th>
+          <th>Field Name</th>
+          <th>Expression</th>
+        </tr
+        
+      </table>
+      <button type="button" name="Add Field" onclick="addRow()">Add Field</button
+      <div class="">
+        <button type="button" name="load">Load</button>
+        <button type="button" name="button">Save</button>
+      </div>
+    </div>
+
+    <div id="exampleEventHolder">
+      <h3>Example Event Log</h3>
+      <hr>
+      <p id="exampleEvent">
+      </p>
+    </div>
+    <div id="fieldValueHolder">
+      <h3>Field Values</h3>
+      <hr>
+      <p id="fieldValue">
+      </p>
+    </div>
+
+
+  </body>
+  <script type="text/javascript">
+    document.getElementById('logFile').addEventListener('change', readSingleFile, false);
+  </script>
+</html>

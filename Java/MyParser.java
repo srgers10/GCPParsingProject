@@ -254,7 +254,7 @@ public class MyParser{
     //Returns json with field and value pairs, based on the given log file and command table
     public String parse(){
         Dictionary<String, String> toReturn = new Hashtable<String, String>();
-        String json = "{ \"events\": [ {";
+        StringBuilder json =new StringBuilder("{ \"events\": [ {");
         int noOfEvents = 0;
         boolean xml = this.eventSplitter.equals("XML");
 
@@ -269,28 +269,29 @@ public class MyParser{
         }
         for(int i = 1; i < noOfEvents; i++){
             String[][] parsedEvent = parseEvent(xml ? "" : events[i], i);
-            if(i!=1) json += ", {";
+            if(i!=1) json.append(", {");
             for(int j = 0; j< parsedEvent.length; j++){
-                if(j!=0) json += ",";
+                if(j!=0) json.append(",");
                 String fieldName = parsedEvent[j][0];
                 String val = parsedEvent[j][1];
                 toReturn.put(fieldName, val);
 
-                json += "\""+fieldName + "\": \"" + val + "\"";
+                json.append("\""+fieldName + "\": \"" + val + "\"");
             }
-            json += "}";
+            json.append("}");
         }
-        json +="]\n}";
+        json.append("]\n}");
         fields = toReturn;
-        return json;
+        return json.toString();
     }
 
     /* Returns a dictionary of fields and values for the given event
        key = field_name, value = field_value
        table = [fields],
        For Regex and Delimiter: [index: 0 = command, 1= group/split index, 2 = field_name, 3 = expression]
-       For XML: [index: 0 = command, 1= Node Name, 2 = field_name, 3 = Attribute Name/<expression>], 4 = group/split index, 5 = Regex Expression, 6 = Delimiter */
-    public String[][] parseEvent(String event, int eventIndex){
+       For XML: [index: 0 = command, 1= Node Name, 2 = field_name, 3 = Attribute Name/<expression>], 4 = group/split index, 5 = Regex Expression, 6 = Delimiter 
+    */
+    public String[][] parseEvent(String event, int eventIndex) {
         String[][] toReturn = new String[commandTable.size()][2]; //0 == field name, 1 == value
         this.delimitedEvents = new HashMap<String, String[]>();
         for(int i = 0; i < commandTable.size(); i++){
@@ -330,11 +331,11 @@ public class MyParser{
 
 
     public static void main(String args[]){
-        // String logPath = "../Logs/example_log_data.log";
-        // String commPath = "../CommandTables/example_command_table.txt";
-        // String outputPath = "../JSON/java_example_output.json";
-        // String split = "[\r\n]+";
-        String helpText = "java MyParser -lp <log_path> -cp <command_path> -op <output_path> -s <splitter>";
+         String logPath = "../Logs/example_log_data.log";
+         String commPath = "../CommandTables/example_command_table.txt";
+         String outputPath = "../JSON/java_example_output.json";
+         String split = "[\r\n]+";
+       /* String helpText = "java MyParser -lp <log_path> -cp <command_path> -op <output_path> -s <splitter>";
 
         CliParser cp = new CliParser(args);
 
@@ -348,8 +349,10 @@ public class MyParser{
             System.out.println(helpText);
             return;
         }
-
+        */
         System.out.println("Parsing...");
+        long startTime = System.currentTimeMillis();
+ 
         MyParser parser = new MyParser(logPath, commPath, split);
         String json = parser.parse();
 
@@ -365,7 +368,11 @@ public class MyParser{
         try {writer.close();} catch (Exception ex) {/*ignore*/}
         }
 
-        System.out.println(json);
+        //System.out.println(json);
         System.out.println("\nDone! Saved to "+ outputPath);
+        long endTime = System.currentTimeMillis();
+
+        long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
+        System.out.println("Duration: "+ duration);
     }
 }
