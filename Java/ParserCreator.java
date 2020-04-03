@@ -1,29 +1,36 @@
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Hashtable;
+import java.nio.file.*;
+import java.util.*;
 import java.util.regex.*;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import java.util.TreeSet;
+import javax.xml.parsers.*;
+import org.w3c.dom.*;
 
-class CliParser{
+/**
+ * Allows the ParseTester to run with arguments to help with the automation. Takes the following arguments
+ * <hr>
+ * -lp 'logPath' -cp 'commandPath' -op 'outputPath' -s 'splitter'
+ * <ul>
+ *  <li><b>logPath. </b><i>This is the path to the file you want to parse.</i></li> 
+ *  <li><b>commandPath. </b><i>This is the path to the command file which includes your regex and delimiter instructions.</i></li> 
+ *  <li><b>outputPath. </b><i>This is the path where the parser will save the parsed data to JSON format</i></li> 
+ *  <li><b>splitter.</b> This is the RegEx used to split the events. By default it use ([\n\r]+) which splits the file by new line and carrige returns</li> 
+ *  -cp <command_path> -op <output_path> -s <splitter></ul>
+ * <hr>
+ * @author Stephen Rogers
+ * @author Patrick Kelly
+ * @author Utsav Shrestha
+ */
+
+class CliHelper{
     private String[] args = null;
     private HashMap<String, Integer> switchIndexes = new HashMap<String, Integer>();
     private TreeSet<Integer> takenIndexes  = new TreeSet<Integer>();
 
-    public CliParser(String[] args) {
+    public CliHelper(String[] args) {
         parse(args);
     }
 
-    public void parse(String[] arguments){
+    void parse(String[] arguments){
         this.args = arguments;
         //locate switches.
         switchIndexes.clear();
@@ -50,8 +57,40 @@ class CliParser{
         return "";
     }
 }
+/**
+ * parses out fields within any given file, based on a given command file. Fields can be extracted by either RegEx, a Delimitter, or via an XML field
+ * <hr>
+ *  <div><b>Command Format: </b> 'Command' 'Index' 'FieldName' 'Expression'</div>
+ *  <div>ex: Delimitter 0 destIP |</div>
+ *  <div>ex: RegEx 2 timestamp (\[.*\])</div>
+ *  <br>
+ *  <ul>
+ *      <li><b>Command</b> - the type of extraction
+ *        <ul> 
+ *            <li>RegEx - extract field with a regular expression</li>
+ *            <li>Delimitter - grabs the nth element split by a character</li>
+ *            <li>XML - extracts field by given XML tag name</li>
+ *          </ul>
+ *      </li>
+ *      <li><b>Index</b> - the nth element that was extracted from the expression
+ *      </li>
+ *      <li><b>FieldName</b> - the alias (JSON key) for the extracted data
+ *      </li>
+ *      <li><b>Expression</b> - the expression used to extract the value
+ * *        <ul> 
+ *            <li>RegEx - RegEx expression</li>
+ *            <li>Delimitter - The character to split by</li>
+ *            <li>XML - the XML tag name</li>
+ *          </ul>
+ *      </li>
+ *  </ul>
+ * <hr>
 
-public class MyParser{
+ * @author Stephen Rogers
+ * @author Patrick Kelly
+ * @author Utsav Shrestha
+ */
+public class ParserCreator{
     Dictionary<String, String>  delimDict;
     HashMap<String, Integer> xmlExprDict;
     HashMap<String, Pattern> regexPatterns = new HashMap<String, Pattern>();
@@ -66,7 +105,13 @@ public class MyParser{
     String commandPath;
     String eventSplitter;
 
-    public MyParser(String logPath, String commandPath, String eventSplitter){
+    /**
+     * 
+     * @param logPath the path to the file you want to parse
+     * @param commandPath the path to the command table
+     * @param eventSplitter the RegEx to split the log file by
+     */
+    public ParserCreator(String logPath, String commandPath, String eventSplitter){
         delimDict = new Hashtable<String, String>(){{
             put("<space>", " ");
             put("<hyphen>", "-");
@@ -87,7 +132,12 @@ public class MyParser{
         }
     }
 
-    //Splits all events by a specified 'Splitter'
+    /**
+     * Splits a given file path into a String[] of events
+     * @param path the path to the file you want to spilt
+     * @param splitter the regex to split the events by
+     * @return an array of events (represented by strings)
+     */
     public String[] splitEvents(String path, String splitter){
         String fileData = "";
         try {
@@ -104,7 +154,18 @@ public class MyParser{
         return toReturn;
     }
 
-    //Command table is the list of commands and field names needed to extract event's fields
+    /**
+     * 
+     * Extracts the given commands in a command table and saves each command into a String[] where {
+     * 
+     * <ul>
+
+     * <li>XML: [0] = command, [1]= Node Name, [2] = field_name, [3] = Attribute Name/expression], [4] = group/split index, [5] = Regex Expression, [6] = Delimiter </li>
+     * </ul>
+     * <div><i>Command table is the list of commands and field names needed to extract event's fields</i></div>
+     * @param commandPath the path to the command table
+     * @return an ArrayList of all commands in the command table
+     */
     public ArrayList<String[]> getCommandTable(String commandPath){
         ArrayList<String[]> toReturn = new ArrayList<String[]>();
         File file = new File(commandPath);
@@ -132,8 +193,14 @@ public class MyParser{
         }
         return toReturn;
     }
+    /**
+     * Extracts value based on given regular expression
+     * @param event  the input you want to extract the value from
+     * @param index the regex group to return
+     * @param expression the regular expression
+     * @return the value extracted by the given expression
+     */
 
-    //Extracts value based on given regular expression
     public String extractRegexField(String event, int index, String expression) {
         String toReturn = "";
         try{
@@ -158,8 +225,13 @@ public class MyParser{
         }
         //return val;
     }
-
-    //Extracts value based on the provided delimeter and index
+    /**
+     * Extracts value based on the provided delimeter and index
+     * @param event  the input you want to extract the value from
+     * @param index the nth element form the split values
+     * @param delimiter the character to split by
+     * @return the value extracted by the given delimiter
+     */
     public String extractDelimField(String event, int index, String delimiter) {
         String[] fields = null;
         if(delimitedEvents.containsKey(delimiter)){
@@ -180,6 +252,10 @@ public class MyParser{
         return "";
     }
 
+    /**
+     * Splits an XML File by the "Events" tag
+     * @return list of event nodes. 
+     */
     public NodeList splitXML(){
         try
         {
@@ -208,8 +284,18 @@ public class MyParser{
         }
         return null;
     }
+    /**
+     * Extracts value based on XML attributes or text along with other options such as regex and delimeter
+     * 
+     * @param xPath the path to the given xml tag. can also be the name of the tag
+     * @param expression text = extract value from text of the node, else = extract value from attribute of the node
+     * @param index index
+     * @param regex regex
+     * @param delimiter delimiter
+     * @param eventIndex event index
+     * @return the field value
+     */
 
-    //Extracts value based on XML attributes or text along with other options such as regex and delimeter
     public String extractXMLField(String xPath, String expression, int index, String regex, String delimiter, int eventIndex) {
         try {
             if(this.xml_nodes == null){
@@ -251,7 +337,11 @@ public class MyParser{
         return null;
     }
 
-    //Returns json with field and value pairs, based on the given log file and command table
+    /**
+     * parses the log file with the command table
+     * @return json with field and value pairs, based on the given log file and command table
+     */
+    
     public String parse(){
         Dictionary<String, String> toReturn = new Hashtable<String, String>();
         StringBuilder json =new StringBuilder("{ \"events\": [ {");
@@ -285,6 +375,12 @@ public class MyParser{
         return json.toString();
     }
 
+    /**
+     * Parses out the fields of a given event by the command table
+     * @param event event
+     * @param eventIndex event index
+     * @return a 2D array of [field][0 == field name, 1 == value]
+     */
     /* Returns a dictionary of fields and values for the given event
        key = field_name, value = field_value
        table = [fields],
@@ -327,52 +423,5 @@ public class MyParser{
             }
         }
         return toReturn;
-    }
-
-
-    public static void main(String args[]){
-         String logPath = "../Logs/example_log_data.log";
-         String commPath = "../CommandTables/example_command_table.txt";
-         String outputPath = "../JSON/java_example_output.json";
-         String split = "[\r\n]+";
-       /* String helpText = "java MyParser -lp <log_path> -cp <command_path> -op <output_path> -s <splitter>";
-
-        CliParser cp = new CliParser(args);
-
-        String logPath = cp.switchValue("-lp");
-        String commPath = cp.switchValue("-cp");
-        String outputPath = cp.switchValue("-op");
-        String split = cp.switchValue("-s");
-
-        if (logPath.equals("") || commPath.equals("") || outputPath.equals("") || split.equals("")){
-            System.out.println("Please use correct syntax:");
-            System.out.println(helpText);
-            return;
-        }
-        */
-        System.out.println("Parsing...");
-        long startTime = System.currentTimeMillis();
- 
-        MyParser parser = new MyParser(logPath, commPath, split);
-        String json = parser.parse();
-
-        Writer writer = null;
-
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(outputPath), "utf-8"));
-            writer.write(json);
-        } catch (IOException ex) {
-            // Report
-        } finally {
-        try {writer.close();} catch (Exception ex) {/*ignore*/}
-        }
-
-        //System.out.println(json);
-        System.out.println("\nDone! Saved to "+ outputPath);
-        long endTime = System.currentTimeMillis();
-
-        long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
-        System.out.println("Duration: "+ duration);
     }
 }
