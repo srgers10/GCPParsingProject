@@ -4,7 +4,7 @@ Tool for parsing and normalizing log data to ease injestion into Google Cloud Pl
 **The GUI should only be used for the creation of the command table**
 
 ### Developers: Stephen Rogers, Patrick Kelly, Utsav Shrestha
-
+[Documentation](https://srgers10.github.io/GCPParsingProject/)
 
 ## Using the GUI
 The GUI tool is to help in the creation of the command table file. It allows user to view and test their RegEx and extractions in real time and cycle through multiple events to make sure it works in all scenarios. 
